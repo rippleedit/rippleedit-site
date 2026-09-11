@@ -1,7 +1,7 @@
 # RippleEdit
 
 The RippleEdit website: video editing for music producers. Live at
-www.ripple-edit.com (see `CNAME`).
+ripple-edit.com (see `CNAME`; www redirects to it).
 
 A static site. No build step, no framework, no dependencies: plain HTML, CSS
 and ES modules loaded directly by the browser.
