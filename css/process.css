@@ -1,0 +1,1856 @@
+/* ==========================================================================
+   THE PROCESS
+   One pinned macOS window carried across four steps. The program monitor and
+   the timeline are never torn down between steps - they persist and change
+   state, so the sequence reads as a single session instead of four slides.
+
+   Narration lives entirely in the rail. The window stays purely visual.
+   ========================================================================== */
+
+.process-sequence {
+  position: relative;
+  /* The same tail every other section has, which also leaves room for the
+     add-on cards' hover glow before the next section paints over it. */
+  padding-block: var(--section-lead) var(--section-tail);
+  background: var(--black);
+}
+
+/* During an automatic handoff the viewport stays at the trigger while the
+   scene advances on its own timeline. Keep native scroll behaviour and the
+   continuously-driven layers out of that animation so there is one easing
+   curve, not a stack of delayed CSS transitions chasing it. */
+html.process-auto-scrolling {
+  scroll-behavior: auto !important;
+  overscroll-behavior: none;
+}
+
+html.process-auto-scrolling .monitor-video,
+html.process-auto-scrolling .monitor-veil,
+html.process-auto-scrolling .monitor-idle,
+html.process-auto-scrolling .monitor-cue,
+html.process-auto-scrolling .monitor-hint,
+html.process-auto-scrolling .monitor-scrubber,
+html.process-auto-scrolling .monitor-grade,
+html.process-auto-scrolling .timeline-lanes,
+html.process-auto-scrolling .monitor-export,
+html.process-auto-scrolling .progress-ring--export,
+html.process-auto-scrolling .process-rail {
+  transition: none;
+}
+
+/* The heading scrolls past on the shared grid, then the workbench pins. The
+   frame's verticals run through both, which is what ties them together. */
+.process-sequence > .section-shell {
+  padding-bottom: clamp(1rem, 2vw, 1.75rem);
+}
+
+/* Scroll track ------------------------------------------------------------ */
+
+/* Opt-in. Until the visitor clicks the invitation, the track is exactly one
+   screen: the window sits on the page like any other section and scrolling
+   carries straight past it. Engaged, it opens into the runway. Only the
+   visitor's beats need scroll (the edit and the render play on their own
+   clock), at 8.7vh per SEGMENTS unit. */
+.process-track {
+  position: relative;
+  height: 100svh;
+}
+
+.process-sequence.is-engaged .process-track {
+  height: 2306vh;
+}
+
+.process-stage {
+  position: sticky;
+  top: 0;
+  display: grid;
+  place-items: center;
+  height: 100svh;
+  /* Offsets the fixed header so the window reads optically centred rather
+     than mathematically centred behind it. */
+  padding-top: 76px;
+  overflow: hidden;
+}
+
+.process-workbench {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: var(--max-width);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+  /* Perspective lives here so the window can tilt without flattening its
+     children into the transform. */
+  perspective: 1900px;
+  perspective-origin: 50% 45%;
+  /* Small on the way past, full size when you are with it. */
+  transform: scale(calc(0.8 + 0.2 * var(--focus, 1)));
+  transform-origin: 50% var(--focus-anchor, 0%);
+}
+
+/* Window ------------------------------------------------------------------ */
+
+.workbench-window {
+  position: relative;
+  width: 100%;
+  /* Everything lives inside the window now, so it takes the room it can get:
+     bounded by width, and by the height a 16:9 canvas plus titlebar needs. */
+  max-width: min(76rem, calc((78svh - 2.6rem) * 16 / 9));
+  overflow: hidden;
+  border: 1px solid var(--white-14);
+  border-radius: 14px;
+  background: var(--black-soft);
+  /* Layered rather than one flat drop: a contact shadow, a long cast, and a
+     hairline of light along the top edge. That stack is most of what separates
+     a composited frame from a div with a box-shadow on it. */
+  box-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.6),
+    0 24px 60px -20px rgba(0, 0, 0, 0.85),
+    0 60px 140px -40px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transform-style: preserve-3d;
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition: opacity 900ms var(--ease-out), transform 1s var(--ease-out);
+  will-change: transform;
+}
+
+/* While the pointer is over it the window tracks the cursor rather than
+   easing behind it. */
+.workbench-window.is-tilting {
+  transition: opacity 700ms var(--ease-out), transform 90ms linear;
+}
+
+.process-sequence.is-entered .workbench-window {
+  opacity: 1;
+  transform:
+    rotateX(var(--tilt-x, 0deg))
+    rotateY(var(--tilt-y, 0deg))
+    translate3d(0, 0, 0);
+}
+
+/* What we offer --------------------------------------------------------
+   The same section's payoff: what goes into the edit, then what can be
+   booked on top of it. Two tiers, told apart at a glance: the edit as a calm
+   grid of six, the add-ons as orange-edged cards you could pick up. */
+
+.process-deliverables {
+  padding-top: clamp(3.5rem, 7vw, 6.5rem);
+}
+
+.icon-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.deliverables-head {
+  margin-bottom: clamp(2rem, 4vw, 3.2rem);
+}
+
+.deliverables-head h3 {
+  margin: 0;
+  font-size: clamp(1.9rem, 3.4vw, 3.2rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--white);
+}
+
+.offer-group + .offer-group {
+  margin-top: clamp(3rem, 6vw, 5rem);
+}
+
+.offer-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.1rem;
+  margin-bottom: clamp(1.2rem, 2.4vw, 1.8rem);
+}
+
+.offer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--white);
+}
+
+/* The same live dot the section kickers use, in the tier's colour. */
+.offer-tag::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--white-52);
+}
+
+.offer-tag--signal { color: var(--signal); }
+.offer-tag--signal::before {
+  background: var(--signal);
+  box-shadow: 0 0 10px rgba(255, 61, 23, 0.8);
+}
+
+.offer-note {
+  color: var(--white-52);
+  font-size: var(--fs-small);
+}
+
+/* Shared: the orange number and the line under each label. */
+.offer-index {
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.06em;
+  color: var(--signal);
+}
+
+.offer-detail {
+  max-width: 34ch;
+  margin: 0;
+  color: var(--white-52);
+  font-size: var(--fs-small);
+  line-height: 1.5;
+}
+
+.offer-icon svg,
+.addon-icon svg,
+.addon-chip svg,
+.addon-link svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* The edit: six, in a grid of three, hairlines between. */
+.offer-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--white-14);
+  list-style: none;
+}
+
+.offer-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: start;
+  gap: 0.9rem 1rem;
+  padding: clamp(1.4rem, 2.4vw, 2rem) clamp(1rem, 2vw, 1.8rem) clamp(1.6rem, 2.6vw, 2.2rem) 0;
+  border-bottom: 1px solid var(--white-14);
+}
+
+.offer-item:not(:nth-child(3n + 1)) {
+  padding-left: clamp(1rem, 2vw, 1.8rem);
+  border-left: 1px solid var(--white-14);
+}
+
+.offer-icon {
+  display: grid;
+  place-items: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--white-14);
+  border-radius: 10px;
+  background: rgba(242, 240, 234, 0.03);
+  color: var(--white);
+  transition: color 260ms ease, border-color 260ms ease, background-color 260ms ease;
+}
+
+.offer-icon svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.offer-item .offer-index {
+  align-self: start;
+  justify-self: end;
+  padding-top: 0.2rem;
+}
+
+.offer-label {
+  grid-column: 1 / -1;
+  margin: 0.4rem 0 0;
+  font-size: clamp(1.1rem, 1.5vw, 1.35rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--white);
+}
+
+.offer-item .offer-detail {
+  grid-column: 1 / -1;
+}
+
+.offer-item:hover .offer-icon {
+  border-color: rgba(255, 61, 23, 0.55);
+  background: rgba(255, 61, 23, 0.08);
+  color: var(--signal);
+}
+
+/* The add-ons: cards with an orange edge, marked as extras you can add. */
+.addon-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(0.8rem, 1.6vw, 1.25rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.addon-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: clamp(1.3rem, 2.2vw, 1.8rem);
+  border: 1px solid rgba(255, 61, 23, 0.3);
+  border-radius: var(--radius-media);
+  background:
+    radial-gradient(120% 80% at 0% 0%, rgba(255, 61, 23, 0.12), transparent 60%),
+    rgba(255, 61, 23, 0.025);
+  transition: border-color 300ms ease, transform 420ms var(--ease-out), box-shadow 300ms ease;
+}
+
+.addon-card:hover {
+  border-color: rgba(255, 61, 23, 0.75);
+  /* Reaches at most ~36px below the card: inside the section's tail. */
+  box-shadow: 0 16px 42px -22px rgba(255, 61, 23, 0.4);
+  transform: translateY(-3px);
+}
+
+.addon-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.addon-icon {
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 12px;
+  background: rgba(255, 61, 23, 0.14);
+  color: var(--signal);
+}
+
+.addon-icon svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.addon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.35rem 0.65rem 0.35rem 0.5rem;
+  border: 1px solid rgba(255, 61, 23, 0.45);
+  border-radius: var(--radius-control);
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.addon-chip svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke-width: 2.2;
+}
+
+.addon-label {
+  margin: 0;
+  font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+  color: var(--white);
+}
+
+.addon-points {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.2rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--white-76);
+  font-size: var(--fs-small);
+}
+
+.addon-points li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.addon-points li::before {
+  content: "";
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--signal);
+  transform: translateY(-2px);
+}
+
+.addon-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: fit-content;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.addon-link svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  transition: transform 300ms var(--ease-out);
+}
+
+.addon-link:hover svg,
+.addon-card:hover .addon-link svg {
+  transform: translateX(4px);
+}
+
+@media (max-width: 1080px) {
+  .offer-list,
+  .addon-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .offer-item:not(:nth-child(3n + 1)) { padding-left: 0; border-left: 0; }
+  .offer-item:nth-child(2n) { padding-left: clamp(1rem, 2vw, 1.8rem); border-left: 1px solid var(--white-14); }
+}
+
+@media (max-width: 640px) {
+  .offer-list,
+  .addon-list { grid-template-columns: 1fr; }
+  .offer-item:nth-child(2n) { padding-left: 0; border-left: 0; }
+
+  /* One row for the icon, the title and the number, so the list is not a
+     tower of icons. */
+  .offer-item {
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.7rem 0.9rem;
+    padding-block: 1.2rem 1.35rem;
+  }
+
+  .offer-label {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .offer-item .offer-index {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: center;
+    padding-top: 0;
+  }
+
+  .offer-icon {
+    width: 2.3rem;
+    height: 2.3rem;
+  }
+}
+
+/* The bar itself is the progress read-out: it floods left to right rather
+   than carrying a hairline that creeps along underneath it. */
+.titlebar-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(var(--sequence-progress, 0));
+  background: linear-gradient(90deg, #d8330f, var(--signal) 62%, #ff6a45);
+  box-shadow: 0 0 26px rgba(255, 61, 23, 0.45);
+}
+
+/* Once someone has opted in: step back, step on, or skip to the end. Top
+   right in the window chrome, one family of pills. */
+.titlebar-controls {
+  position: relative;
+  display: flex;
+  gap: 0.45rem;
+  margin-left: auto;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 400ms var(--ease-out);
+}
+
+.process-sequence.is-engaged .titlebar-controls {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.titlebar-button {
+  padding: 0.42rem 0.8rem;
+  border: 1px solid var(--white-14);
+  border-radius: var(--radius-control);
+  background: rgba(8, 8, 8, 0.78);
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--white);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 250ms ease, background-color 200ms ease, color 200ms ease, border-color 200ms ease;
+}
+
+.titlebar-button span {
+  color: var(--white-64);
+  transition: color 200ms ease;
+}
+
+.titlebar-skip span {
+  margin-left: 0.3em;
+  letter-spacing: -0.04em;
+  color: var(--signal);
+}
+
+.titlebar-button:not(:disabled):hover,
+.titlebar-button:focus-visible {
+  border-color: var(--white);
+  background: var(--white);
+  color: var(--black);
+}
+
+.titlebar-button:not(:disabled):hover span,
+.titlebar-button:focus-visible span {
+  color: var(--black);
+}
+
+.titlebar-button:disabled {
+  opacity: 0.32;
+  cursor: default;
+}
+
+@media (max-width: 860px) {
+  .titlebar-button:not(.titlebar-skip) { display: none; }
+}
+
+.window-titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  height: 42px;
+  padding-inline: 1rem;
+  border-bottom: 1px solid var(--white-08);
+  background: var(--panel);
+  user-select: none;
+  overflow: hidden;
+}
+
+.traffic-lights {
+  position: relative;
+  display: inline-flex;
+  gap: 7px;
+}
+
+.traffic-lights .light {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.light--red { background: #ff5f56; }
+.light--yellow { background: #ffbd2e; }
+.light--green { background: #27c93f; }
+
+/* Superseded by .titlebar-fill. */
+.window-progress-unused {
+  position: absolute;
+  inset: auto 0 -1px 0;
+  display: block;
+  height: 2px;
+  background: var(--signal);
+  transform: scaleX(var(--sequence-progress, 0));
+  transform-origin: left center;
+}
+
+/* Canvas ------------------------------------------------------------------ */
+
+/* One shape for the whole sequence: the canvas is 16:9 and never changes
+   size, so the picture can fill it exactly when the timeline slides away. */
+.window-canvas {
+  --timeline-h: clamp(150px, 34%, 250px);
+  --ring-size: clamp(7rem, 13vw, 9.5rem);
+
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  transform: translate3d(var(--impact-x, 0), var(--impact-y, 0), 0)
+    scale(var(--impact-scale, 1));
+  transform-origin: center;
+  will-change: transform;
+}
+
+/* A single-frame-feeling flash at the upload-to-edit impact. */
+.window-canvas::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  background: radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.96), rgba(255, 93, 49, 0.72) 42%, transparent 78%);
+  opacity: var(--impact-flash, 0);
+  pointer-events: none;
+}
+
+/* Program monitor - persistent across all four steps ---------------------- */
+
+.workbench-monitor {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--black);
+}
+
+.workbench-monitor.is-live {
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 44px rgba(255, 61, 23, 0.16);
+}
+
+.monitor-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter:
+    saturate(calc(1.18 - var(--monitor-desat, 0) * 1.18))
+    contrast(calc(1.1 - var(--monitor-desat, 0) * 0.16))
+    brightness(calc(1 - var(--monitor-dim, 0)))
+    blur(var(--monitor-blur, 0px));
+  opacity: var(--monitor-alpha, 0);
+  transition: opacity 500ms var(--ease-out), filter 600ms var(--ease-out);
+}
+
+.monitor-video:not(.monitor-video--log) {
+  clip-path: circle(calc((75% * (1 - var(--iris, 0)) + var(--ring-size) * 0.4 * var(--iris, 0)) * (1 - var(--iris-out, 0))) at 50% 50%);
+  rotate: calc(var(--iris, 0) * var(--iris, 0) * -32deg + var(--iris-spin, 0) * 1deg);
+  scale: calc(1 + 0.18 * var(--iris, 0));
+}
+
+/* The ungraded plate, wiped away from the left by the handle. */
+.monitor-video--log {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  filter: saturate(0.1) contrast(0.72) brightness(calc(1.16 - var(--monitor-dim, 0))) blur(var(--monitor-blur, 0px));
+  /* Position comes from the playhead, not from a pointer. */
+  opacity: calc(var(--monitor-alpha, 0) * var(--grade-alpha, 0));
+  clip-path: polygon(var(--grade-pos, 0%) 0, 100% 0, 100% 100%, var(--grade-pos, 0%) 100%);
+  /* Same expression as the line, so the wipe edge and the playhead are one. */
+}
+
+.monitor-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5,5,5,0.55) 0%, transparent 26%, transparent 52%, rgba(5,5,5,0.74) 100%),
+    linear-gradient(90deg, rgba(5,5,5,0.52) 0%, transparent 38%);
+  opacity: var(--veil-alpha, 0);
+  transition: opacity 500ms var(--ease-out);
+}
+
+.monitor-idle {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--black);
+  opacity: calc(1 - var(--monitor-alpha, 0));
+  transition: opacity 500ms var(--ease-out);
+  pointer-events: none;
+}
+
+.idle-label {
+  font: 400 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--white-28);
+}
+
+/* The invitation, before anything has happened. */
+.monitor-cue {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 1.3rem;
+  opacity: var(--cue, 0);
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-out);
+}
+
+.cue-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem 1.6rem 1rem 1.25rem;
+  border: 1px solid rgba(255, 61, 23, 0.6);
+  border-radius: var(--radius-control);
+  background: rgba(255, 61, 23, 0.07);
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--signal);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: cue-breathe 2.4s ease-in-out infinite;
+  transition: background-color 240ms ease, color 240ms ease, border-color 240ms ease;
+}
+
+.cue-button:hover,
+.cue-button:focus-visible {
+  border-color: var(--signal);
+  background: var(--signal);
+  color: var(--black);
+  animation-play-state: paused;
+}
+
+/* Only clickable while it can be seen. */
+.monitor-cue.is-gone .cue-button {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* A drawn play triangle, so no glyph is involved. */
+.cue-play {
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid currentColor;
+}
+
+@keyframes cue-breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 61, 23, 0); }
+  50%      { box-shadow: 0 0 34px -4px rgba(255, 61, 23, 0.55); }
+}
+
+.cue-chevrons {
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+}
+
+/* Three drawn chevrons cascading down, on a loop. */
+.cue-chevrons i {
+  width: 13px;
+  height: 13px;
+  border-right: 2px solid var(--signal);
+  border-bottom: 2px solid var(--signal);
+  transform: rotate(45deg);
+  animation: cue-fall 1.15s ease-in-out infinite;
+}
+
+.cue-chevrons i:nth-child(2) { animation-delay: 0.10s; }
+.cue-chevrons i:nth-child(3) { animation-delay: 0.20s; }
+
+@keyframes cue-fall {
+  0%, 100% { opacity: 0.16; transform: rotate(45deg) translate3d(-2px, -2px, 0); }
+  45%      { opacity: 1;    transform: rotate(45deg) translate3d(0, 0, 0); }
+}
+
+/* Dead centre of the frame on the beats the visitor drives. In step 1 that is
+   the middle of the upload ring; in step 3, the middle of the picture, with
+   the notes landing around it. Two short lines so it fits inside the ring. */
+.monitor-hint {
+  position: absolute;
+  top: calc(50% - var(--hint-lift, 0) * var(--timeline-h) / 2 + var(--hint-drop, 0) * (var(--ring-size) / 2 + 4.7rem));
+  left: 50%;
+  z-index: 12;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  opacity: var(--hint, 0);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: opacity 420ms var(--ease-out);
+}
+
+.hint-text {
+  font: 500 var(--fs-label) / 1.45 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--signal);
+  text-align: center;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+/* A soft dark backing wherever there is a picture behind the hint, so it
+   reads over any frame (and the playhead passes behind it, not through). */
+.monitor-hint::before {
+  content: "";
+  position: absolute;
+  inset: -0.75rem -1.1rem;
+  z-index: -1;
+  border-radius: 16px;
+  background: rgba(5, 5, 5, 0.62);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  opacity: var(--hint-backdrop, 0);
+}
+
+.monitor-hint.is-light .hint-text {
+  color: #fff;
+  text-shadow: 0 1px 10px rgba(120, 20, 0, 0.35);
+}
+
+.monitor-hint.is-light .cue-chevrons i {
+  border-color: #fff;
+}
+
+.cue-chevrons--small {
+  gap: 3px;
+}
+
+.cue-chevrons--small i {
+  width: 10px;
+  height: 10px;
+}
+
+/* Review scrubber. Sits on the picture because by step 3 the timeline has
+   gone, and the notes still need something to be timed against. */
+.monitor-scrubber {
+  position: absolute;
+  right: clamp(1rem, 3%, 2rem);
+  bottom: clamp(0.9rem, 4%, 1.6rem);
+  left: clamp(1rem, 3%, 2rem);
+  z-index: 5;
+  opacity: var(--scrubber-alpha, 0);
+  transition: opacity 420ms var(--ease-out);
+  pointer-events: none;
+}
+
+.scrubber-track {
+  position: relative;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.scrubber-fill {
+  display: block;
+  width: var(--scrubber-pos, 0%);
+  height: 100%;
+  background: var(--signal);
+}
+
+.scrubber-tick {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--white-52);
+  transform: translate(-50%, -50%);
+  transition: background-color 320ms var(--ease-out), transform 320ms var(--ease-out);
+}
+
+.scrubber-tick.is-in {
+  background: var(--signal);
+  transform: translate(-50%, -50%) scale(1.35);
+}
+
+.scrubber-head {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: var(--scrubber-pos, 0%);
+  width: 2px;
+  background: var(--white);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+  transform: translateX(-50%);
+}
+
+/* Step 2: flat-to-graded wipe -------------------------------------------- */
+
+.monitor-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  /* The wipe itself stays under the timeline; only the line rises above it. */
+  opacity: var(--grade-alpha, 0);
+  pointer-events: none;
+  transition: opacity 450ms var(--ease-out);
+}
+
+.grade-stamp {
+  position: absolute;
+  bottom: 0.6rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--white-14);
+  border-radius: var(--radius-control);
+  background: rgba(5, 5, 5, 0.82);
+  font: 400 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.grade-stamp--graded {
+  left: 0.7rem;
+  color: var(--signal);
+}
+
+.grade-stamp--flat {
+  right: 0.7rem;
+  color: var(--white-52);
+}
+
+.grade-handle {
+  display: none;
+}
+
+/* This line is a sibling of both monitor and timeline, so it really can run
+   through the full canvas instead of disappearing beneath the timeline. */
+.sequence-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--grade-pos, 0%);
+  z-index: 8;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--signal);
+  box-shadow: 0 0 12px rgba(255, 61, 23, 0.8);
+  opacity: var(--playhead-alpha, 0);
+  pointer-events: none;
+}
+
+/* Step 3: notes on the picture ------------------------------------------- */
+
+.monitor-notes {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.monitor-note {
+  position: absolute;
+  display: flex;
+  /* Bottom-aligned so the dot sits at the squared corner the bubble points
+     from. Centred, the tail aimed at empty frame below it. */
+  align-items: flex-end;
+  gap: 0.55rem;
+  opacity: 0;
+  transform: translate3d(0, 8px, 0) scale(0.9);
+  transform-origin: left center;
+  transition: opacity 300ms var(--ease-out), transform 380ms var(--ease-out);
+}
+
+/* Popped: each note bursts and is gone as the export takes over. */
+.monitor-note.is-in.is-popped {
+  opacity: 0;
+  transform: scale(1.35);
+  transition: opacity 240ms ease-in, transform 300ms cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+
+.monitor-note.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+.note-beacon {
+  position: relative;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 12px var(--signal);
+}
+
+.note-beacon::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border: 1.5px solid var(--signal);
+  border-radius: 50%;
+  animation: beacon-pulse 1.9s ease-out infinite;
+}
+
+@keyframes beacon-pulse {
+  0% { opacity: 0.85; transform: scale(0.7); }
+  70% { opacity: 0; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+
+/* Reads as a note somebody left, not a tooltip: an avatar, the comment, and a
+   tail pointing back at the dot it belongs to. */
+.note-bubble {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.85rem 0.5rem 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px 12px 12px 3px;
+  background: rgba(12, 12, 12, 0.93);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.7);
+  font-size: var(--fs-small);
+  line-height: 1.25;
+  color: var(--white);
+  white-space: nowrap;
+}
+
+/* The commenter's initial, in the accent the dot already uses. */
+.note-bubble::before {
+  content: "M";
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  background: var(--signal);
+  font: 500 0.65rem / 1 var(--font-mono);
+  color: #fff;
+}
+
+.monitor-note:nth-of-type(2) .note-bubble::before { content: "S"; background: #3f7bd8; }
+.monitor-note:nth-of-type(3) .note-bubble::before { content: "M"; }
+.monitor-note:nth-of-type(4) .note-bubble::before { content: "S"; background: #3f7bd8; }
+
+.note-bubble b {
+  margin-right: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-label);
+  font-weight: 500;
+  color: var(--signal);
+}
+
+/* Timeline - persistent, then handed off to export ------------------------ */
+
+/* Docked to the foot of the picture rather than sitting in its own row, so
+   the monitor never has to shrink and the window never changes size. The
+   panel slides out of frame for the review, and the picture is simply there
+   underneath it - that slide is the morph to full screen. */
+.workbench-timeline {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 5;
+  height: var(--timeline-h);
+  border-top: 1px solid rgba(242, 240, 234, calc(0.14 * var(--lanes-alpha, 0)));
+  background: #070707;
+  overflow: hidden;
+  transform: translate3d(0, calc((1 - var(--lanes-alpha, 0)) * 100%), 0);
+}
+
+.timeline-lanes {
+  position: absolute;
+  inset: 0;
+}
+
+/* Empty lanes at step 1 read as a project that is already open, which is the
+   opposite of the point. The timeline arrives with the footage. */
+.timeline-lanes {
+  display: flex;
+  flex-direction: column;
+  opacity: var(--lanes-alpha, 0);
+  transition: opacity 450ms var(--ease-out);
+}
+
+.lane {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-bottom: 1px solid var(--white-08);
+}
+
+.lane:last-of-type {
+  border-bottom: 0;
+}
+
+.lane-label {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  border-right: 1px solid var(--white-08);
+  background: var(--panel);
+  font: 400 var(--fs-label) / 1 var(--font-mono);
+  color: var(--white-52);
+  user-select: none;
+}
+
+/* Lanes are plain: the clips carry the detail. */
+.lane-track {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Clips, drawn the way an editor's timeline draws them. Video is a light
+   block with a thumbnail at its head; audio is a dark, orange-tinted block
+   with its waveform in it. The playhead lays each one down as it passes
+   (--reveal, 0..1, from process.js): a hot edge leads it across, and it
+   flashes once as it locks in. */
+.clip {
+  position: absolute;
+  inset-block: 3px;
+  left: var(--clip-start, 0%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: var(--clip-width, 20%);
+  padding: 0 0.55rem 0 0;
+  overflow: hidden;
+  border-radius: 5px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 60%),
+    rgba(242, 240, 234, 0.9);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), inset 0 0 0 1px rgba(5, 5, 5, 0.18);
+  font: 600 var(--fs-label) / 1 var(--font-sans);
+  letter-spacing: -0.01em;
+  color: rgba(5, 5, 5, 0.84);
+  white-space: nowrap;
+  user-select: none;
+  clip-path: inset(0 calc((1 - var(--reveal, 0)) * 100%) 0 0 round 5px);
+  --clip-glow: rgba(242, 240, 234, 0.55);
+}
+
+.clip span {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The thumbnail: the head frame of the shot, full clip height, 16:9. */
+.clip::before {
+  content: "";
+  flex: none;
+  align-self: stretch;
+  aspect-ratio: 16 / 9;
+  background: var(--thumb, url("../assets/thumbs/clip-1.jpg")) 50% 50% / cover;
+  box-shadow: 1px 0 0 rgba(5, 5, 5, 0.3);
+}
+
+.clip--t1 { --thumb: url("../assets/thumbs/clip-1.jpg"); }
+.clip--t2 { --thumb: url("../assets/thumbs/clip-2.jpg"); }
+.clip--t3 { --thumb: url("../assets/thumbs/clip-3.jpg"); }
+.clip--t4 { --thumb: url("../assets/thumbs/clip-4.jpg"); }
+
+/* Motion graphics: their own colour, no thumbnail, a faint diagonal sheen
+   so they read as rendered graphics rather than footage. */
+.clip--mograph {
+  padding-left: 0.55rem;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0 6px, transparent 6px 14px),
+    linear-gradient(180deg, #ff6a45, var(--signal));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 0 0 1px rgba(5, 5, 5, 0.2);
+  color: rgba(5, 5, 5, 0.86);
+  --clip-glow: rgba(255, 61, 23, 0.8);
+}
+
+.clip--mograph::before {
+  content: none;
+}
+
+/* B-roll sits on the upper track, a shade quieter than the main cameras. */
+.clip--v2 {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 60%),
+    rgba(242, 240, 234, 0.74);
+}
+
+/* The leading edge: white-hot while the clip is being laid down, gone at
+   either end of the reveal. */
+.clip::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--reveal, 0) * 100% - 1.6rem);
+  width: 1.6rem;
+  background: linear-gradient(90deg, transparent, var(--lead, rgba(255, 255, 255, 0.75)));
+  opacity: calc(min(1, var(--reveal, 0) * 12) * min(1, (1 - var(--reveal, 0)) * 12));
+  pointer-events: none;
+}
+
+/* Fully drawn: the clip-path is dropped so the lock flash can bloom past the
+   clip's own edge. */
+/* Locked in: a flare right where the playhead leaves the clip, so the flash
+   happens at the playhead, not across the whole block. */
+.clip.is-locked {
+  clip-path: none;
+}
+
+.clip.is-locked::after {
+  animation: clip-flare 560ms ease-out;
+}
+
+@keyframes clip-flare {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Falling out of the timeline at the end of the edit (--fall 0..1 and --spin
+   per clip, from process.js). */
+.clip {
+  translate: 0 calc(var(--fall, 0) * 260px);
+  rotate: calc(var(--fall, 0) * var(--spin, 0deg));
+}
+
+/* Audio: label up top, waveform below it, on a dark orange tint. */
+.clip--beat,
+.clip--mic,
+.clip--fx,
+.clip--music {
+  align-items: flex-start;
+  padding: 0.26rem 0.55rem 0;
+  text-shadow: 0 1px 3px rgba(5, 5, 5, 0.9);
+  background:
+    var(--clip-fade, none) var(--fade-side, right) top / 14% 100% no-repeat,
+    var(--wave) left 0 bottom 2px / 600px 52% repeat-x,
+    rgba(255, 61, 23, var(--tint, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(255, 61, 23, var(--edge, 0.42));
+  color: rgba(242, 240, 234, 0.9);
+  --clip-glow: rgba(255, 61, 23, 0.7);
+  --lead: rgba(255, 140, 110, 0.55);
+}
+
+.clip--beat::before,
+.clip--mic::before,
+.clip--fx::before,
+.clip--music::before {
+  content: none;
+}
+
+.clip--beat {
+  --wave: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'><path fill='%23ff3d17' fill-opacity='.9' d='M0,17.9 L2,16.3 L4,22.4 L6,32.4 L8,34.7 L10,36.0 L12,34.0 L14,38.2 L16,35.2 L18,36.7 L20,26.6 L22,32.6 L24,40.4 L26,40.5 L28,42.0 L30,40.0 L32,40.9 L34,43.7 L36,40.9 L38,26.5 L40,29.0 L42,28.8 L44,36.9 L46,36.4 L48,36.6 L50,36.3 L52,40.6 L54,42.7 L56,43.6 L58,34.0 L60,36.7 L62,39.7 L64,41.2 L66,40.5 L68,42.5 L70,44.4 L72,42.0 L74,41.3 L76,18.9 L78,29.1 L80,29.6 L82,33.4 L84,34.5 L86,33.5 L88,38.0 L90,35.2 L92,34.3 L94,31.4 L96,35.2 L98,33.4 L100,40.8 L102,41.4 L104,40.0 L106,43.6 L108,42.0 L110,39.4 L112,41.8 L114,23.8 L116,25.7 L118,29.7 L120,36.6 L122,40.3 L124,41.6 L126,41.5 L128,41.4 L130,43.7 L132,37.5 L134,41.2 L136,39.4 L138,42.5 L140,42.5 L142,40.7 L144,42.6 L146,44.4 L148,43.3 L150,7.4 L152,27.6 L154,22.5 L156,25.7 L158,28.7 L160,27.4 L162,35.6 L164,37.8 L166,35.9 L168,38.6 L170,28.3 L172,32.7 L174,35.7 L176,41.0 L178,41.0 L180,43.3 L182,42.4 L184,39.3 L186,39.7 L188,16.7 L190,31.9 L192,35.1 L194,33.5 L196,34.0 L198,37.1 L200,41.9 L202,37.8 L204,39.5 L206,42.9 L208,37.5 L210,36.1 L212,41.2 L214,40.5 L216,43.8 L218,40.6 L220,44.1 L222,40.6 L224,43.3 L226,23.9 L228,13.2 L230,24.3 L232,28.6 L234,26.5 L236,34.9 L238,36.5 L240,37.6 L242,39.6 L244,30.4 L246,33.1 L248,37.5 L250,38.7 L252,39.6 L254,40.8 L256,43.6 L258,43.0 L260,40.5 L262,42.7 L264,25.4 L266,34.8 L268,35.8 L270,33.4 L272,37.0 L274,36.0 L276,39.1 L278,40.4 L280,41.3 L282,33.9 L284,36.4 L286,37.5 L288,40.9 L290,40.3 L292,43.9 L294,44.3 L296,44.4 L298,41.5 L300,21.4 L302,16.1 L304,17.0 L306,30.2 L308,30.3 L310,26.1 L312,36.6 L314,34.7 L316,38.6 L318,35.7 L320,31.1 L322,39.6 L324,37.0 L326,42.0 L328,38.5 L330,42.9 L332,43.5 L334,42.6 L336,42.1 L338,18.8 L340,32.8 L342,31.2 L344,38.3 L346,35.1 L348,41.1 L350,38.4 L352,42.5 L354,43.1 L356,41.5 L358,35.7 L360,40.6 L362,40.6 L364,43.5 L366,44.1 L368,43.2 L370,41.4 L372,42.6 L374,43.4 L376,21.6 L378,17.2 L380,29.3 L382,22.1 L384,26.6 L386,32.4 L388,35.1 L390,34.0 L392,38.0 L394,26.0 L396,34.8 L398,40.3 L400,41.5 L402,41.2 L404,42.8 L406,39.1 L408,42.5 L410,42.6 L412,43.5 L414,29.5 L416,24.9 L418,35.8 L420,37.3 L422,41.1 L424,38.9 L426,41.5 L428,43.2 L430,43.2 L432,38.1 L434,39.2 L436,39.5 L438,39.9 L440,40.8 L442,42.7 L444,40.3 L446,41.6 L448,44.6 L450,6.1 L452,14.8 L454,28.6 L456,26.2 L458,25.4 L460,30.4 L462,31.5 L464,37.2 L466,39.1 L468,40.2 L470,31.0 L472,34.6 L474,38.0 L476,37.4 L478,40.2 L480,39.9 L482,40.0 L484,43.6 L486,40.7 L488,20.0 L490,28.5 L492,32.2 L494,32.2 L496,35.5 L498,40.6 L500,37.8 L502,39.8 L504,43.1 L506,40.4 L508,34.7 L510,39.0 L512,40.9 L514,39.7 L516,39.9 L518,44.5 L520,41.1 L522,42.9 L524,43.9 L526,22.3 L528,27.1 L530,18.1 L532,23.6 L534,25.8 L536,35.1 L538,34.2 L540,39.7 L542,37.2 L544,33.1 L546,35.6 L548,40.7 L550,36.5 L552,37.2 L554,38.3 L556,41.7 L558,38.9 L560,42.3 L562,42.9 L564,31.7 L566,32.7 L568,35.8 L570,35.6 L572,38.3 L574,36.2 L576,39.0 L578,38.1 L580,39.9 L582,31.5 L584,36.1 L586,41.3 L588,39.0 L590,42.0 L592,43.1 L594,40.4 L596,41.9 L598,42.4 L600,21.1 L600,78.9 L598,57.6 L596,58.1 L594,59.6 L592,56.9 L590,58.0 L588,61.0 L586,58.7 L584,63.9 L582,68.5 L580,60.1 L578,61.9 L576,61.0 L574,63.8 L572,61.7 L570,64.4 L568,64.2 L566,67.3 L564,68.3 L562,57.1 L560,57.7 L558,61.1 L556,58.3 L554,61.7 L552,62.8 L550,63.5 L548,59.3 L546,64.4 L544,66.9 L542,62.8 L540,60.3 L538,65.8 L536,64.9 L534,74.2 L532,76.4 L530,81.9 L528,72.9 L526,77.7 L524,56.1 L522,57.1 L520,58.9 L518,55.5 L516,60.1 L514,60.3 L512,59.1 L510,61.0 L508,65.3 L506,59.6 L504,56.9 L502,60.2 L500,62.2 L498,59.4 L496,64.5 L494,67.8 L492,67.8 L490,71.5 L488,80.0 L486,59.3 L484,56.4 L482,60.0 L480,60.1 L478,59.8 L476,62.6 L474,62.0 L472,65.4 L470,69.0 L468,59.8 L466,60.9 L464,62.8 L462,68.5 L460,69.6 L458,74.6 L456,73.8 L454,71.4 L452,85.2 L450,93.9 L448,55.4 L446,58.4 L444,59.7 L442,57.3 L440,59.2 L438,60.1 L436,60.5 L434,60.8 L432,61.9 L430,56.8 L428,56.8 L426,58.5 L424,61.1 L422,58.9 L420,62.7 L418,64.2 L416,75.1 L414,70.5 L412,56.5 L410,57.4 L408,57.5 L406,60.9 L404,57.2 L402,58.8 L400,58.5 L398,59.7 L396,65.2 L394,74.0 L392,62.0 L390,66.0 L388,64.9 L386,67.6 L384,73.4 L382,77.9 L380,70.7 L378,82.8 L376,78.4 L374,56.6 L372,57.4 L370,58.6 L368,56.8 L366,55.9 L364,56.5 L362,59.4 L360,59.4 L358,64.3 L356,58.5 L354,56.9 L352,57.5 L350,61.6 L348,58.9 L346,64.9 L344,61.7 L342,68.8 L340,67.2 L338,81.2 L336,57.9 L334,57.4 L332,56.5 L330,57.1 L328,61.5 L326,58.0 L324,63.0 L322,60.4 L320,68.9 L318,64.3 L316,61.4 L314,65.3 L312,63.4 L310,73.9 L308,69.7 L306,69.8 L304,83.0 L302,83.9 L300,78.6 L298,58.5 L296,55.6 L294,55.7 L292,56.1 L290,59.7 L288,59.1 L286,62.5 L284,63.6 L282,66.1 L280,58.7 L278,59.6 L276,60.9 L274,64.0 L272,63.0 L270,66.6 L268,64.2 L266,65.2 L264,74.6 L262,57.3 L260,59.5 L258,57.0 L256,56.4 L254,59.2 L252,60.4 L250,61.3 L248,62.5 L246,66.9 L244,69.6 L242,60.4 L240,62.4 L238,63.5 L236,65.1 L234,73.5 L232,71.4 L230,75.7 L228,86.8 L226,76.1 L224,56.7 L222,59.4 L220,55.9 L218,59.4 L216,56.2 L214,59.5 L212,58.8 L210,63.9 L208,62.5 L206,57.1 L204,60.5 L202,62.2 L200,58.1 L198,62.9 L196,66.0 L194,66.5 L192,64.9 L190,68.1 L188,83.3 L186,60.3 L184,60.7 L182,57.6 L180,56.7 L178,59.0 L176,59.0 L174,64.3 L172,67.3 L170,71.7 L168,61.4 L166,64.1 L164,62.2 L162,64.4 L160,72.6 L158,71.3 L156,74.3 L154,77.5 L152,72.4 L150,92.6 L148,56.7 L146,55.6 L144,57.4 L142,59.3 L140,57.5 L138,57.5 L136,60.6 L134,58.8 L132,62.5 L130,56.3 L128,58.6 L126,58.5 L124,58.4 L122,59.7 L120,63.4 L118,70.3 L116,74.3 L114,76.2 L112,58.2 L110,60.6 L108,58.0 L106,56.4 L104,60.0 L102,58.6 L100,59.2 L98,66.6 L96,64.8 L94,68.6 L92,65.7 L90,64.8 L88,62.0 L86,66.5 L84,65.5 L82,66.6 L80,70.4 L78,70.9 L76,81.1 L74,58.7 L72,58.0 L70,55.6 L68,57.5 L66,59.5 L64,58.8 L62,60.3 L60,63.3 L58,66.0 L56,56.4 L54,57.3 L52,59.4 L50,63.7 L48,63.4 L46,63.6 L44,63.1 L42,71.2 L40,71.0 L38,73.5 L36,59.1 L34,56.3 L32,59.1 L30,60.0 L28,58.0 L26,59.5 L24,59.6 L22,67.4 L20,73.4 L18,63.3 L16,64.8 L14,61.8 L12,66.0 L10,64.0 L8,65.3 L6,67.6 L4,77.6 L2,83.7 L0,82.1Z'/></svg>");
+  --tint: 0.24;
+  --edge: 0.7;
+}
+
+.clip--mic { --wave: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'><path fill='%23ff3d17' fill-opacity='.66' d='M0,26.2 L2,20.5 L4,22.1 L6,29.9 L8,30.2 L10,29.7 L12,24.0 L14,29.2 L16,21.4 L18,22.7 L20,16.9 L22,19.3 L24,30.5 L26,28.3 L28,30.4 L30,23.9 L32,25.3 L34,32.4 L36,23.5 L38,28.8 L40,26.7 L42,21.7 L44,29.6 L46,25.5 L48,22.4 L50,18.6 L52,26.8 L54,30.7 L56,32.3 L58,21.6 L60,20.1 L62,23.0 L64,25.3 L66,22.8 L68,29.2 L70,35.9 L72,32.2 L74,34.0 L76,39.7 L78,43.1 L80,43.1 L82,43.2 L84,41.5 L86,37.7 L88,37.9 L90,30.9 L92,25.3 L94,30.7 L96,28.9 L98,20.5 L100,31.6 L102,31.5 L104,27.9 L106,35.7 L108,31.5 L110,24.1 L112,28.6 L114,25.6 L116,21.8 L118,21.5 L120,27.9 L122,31.8 L124,32.2 L126,29.8 L128,27.6 L130,32.5 L132,30.9 L134,32.1 L136,23.3 L138,29.1 L140,27.8 L142,21.3 L144,27.3 L146,33.0 L148,30.0 L150,24.2 L152,34.9 L154,29.1 L156,29.5 L158,30.2 L160,27.0 L162,34.1 L164,35.5 L166,32.0 L168,34.2 L170,29.2 L172,28.3 L174,27.9 L176,33.7 L178,31.7 L180,35.4 L182,32.7 L184,25.4 L186,27.4 L188,29.7 L190,38.3 L192,40.4 L194,40.1 L196,41.1 L198,42.9 L200,44.8 L202,42.3 L204,41.9 L206,42.9 L208,40.8 L210,34.8 L212,36.3 L214,30.6 L216,34.4 L218,21.9 L220,30.4 L222,15.2 L224,24.2 L226,27.2 L228,11.1 L230,18.9 L232,20.5 L234,12.8 L236,23.8 L238,24.0 L240,23.7 L242,26.2 L244,22.2 L246,18.2 L248,21.8 L250,21.0 L252,21.8 L254,24.6 L256,32.9 L258,32.2 L260,27.9 L262,34.7 L264,34.6 L266,39.5 L268,38.9 L270,34.8 L272,35.1 L274,30.0 L276,30.5 L278,29.3 L280,28.1 L282,26.0 L284,21.1 L286,15.8 L288,21.1 L290,15.5 L292,27.7 L294,28.3 L296,28.2 L298,15.2 L300,26.8 L302,18.0 L304,14.8 L306,27.1 L308,25.3 L310,17.8 L312,31.5 L314,28.2 L316,33.3 L318,27.4 L320,28.9 L322,34.5 L324,24.6 L326,31.3 L328,18.7 L330,29.2 L332,30.2 L334,26.5 L336,24.6 L338,19.3 L340,30.6 L342,25.5 L344,33.0 L346,25.8 L348,34.3 L350,28.1 L352,35.3 L354,36.0 L356,32.5 L358,32.2 L360,35.5 L362,33.2 L364,37.1 L366,37.4 L368,34.2 L370,28.5 L372,30.2 L374,31.0 L376,31.3 L378,23.8 L380,30.6 L382,18.9 L384,20.0 L386,24.5 L388,25.8 L390,21.0 L392,26.4 L394,20.6 L396,25.5 L398,31.1 L400,31.1 L402,28.4 L404,31.3 L406,19.9 L408,29.0 L410,29.3 L412,31.7 L414,30.9 L416,22.6 L418,32.7 L420,32.9 L422,37.3 L424,33.7 L426,37.4 L428,40.1 L430,40.6 L432,41.9 L434,41.7 L436,41.7 L438,42.5 L440,43.7 L442,45.2 L444,45.0 L446,46.0 L448,47.0 L450,46.7 L452,47.1 L454,47.4 L456,47.4 L458,47.5 L460,47.5 L462,47.5 L464,47.5 L466,47.5 L468,47.4 L470,47.1 L472,46.8 L474,46.5 L476,45.7 L478,45.4 L480,44.4 L482,43.2 L484,44.2 L486,40.6 L488,39.1 L490,38.9 L492,37.6 L494,33.9 L496,33.3 L498,36.7 L500,29.6 L502,30.4 L504,35.4 L506,27.7 L508,27.1 L510,28.8 L512,29.4 L514,24.3 L516,23.7 L518,35.7 L520,27.1 L522,32.1 L524,35.5 L526,36.5 L528,38.1 L530,33.1 L532,35.8 L534,37.0 L536,41.7 L538,41.6 L540,44.1 L542,43.1 L544,44.2 L546,43.6 L548,44.1 L550,39.8 L552,37.5 L554,35.3 L556,36.8 L558,28.7 L560,32.8 L562,31.9 L564,32.8 L566,29.0 L568,28.5 L570,23.6 L572,25.3 L574,16.5 L576,20.5 L578,15.4 L580,19.2 L582,19.4 L584,19.5 L586,27.3 L588,17.7 L590,25.1 L592,27.8 L594,17.2 L596,21.8 L598,22.9 L600,28.8 L600,71.2 L598,77.1 L596,78.2 L594,82.8 L592,72.2 L590,74.9 L588,82.3 L586,72.7 L584,80.5 L582,80.6 L580,80.8 L578,84.6 L576,79.5 L574,83.5 L572,74.7 L570,76.4 L568,71.5 L566,71.0 L564,67.2 L562,68.1 L560,67.2 L558,71.3 L556,63.2 L554,64.7 L552,62.5 L550,60.2 L548,55.9 L546,56.4 L544,55.8 L542,56.9 L540,55.9 L538,58.4 L536,58.3 L534,63.0 L532,64.2 L530,66.9 L528,61.9 L526,63.5 L524,64.5 L522,67.9 L520,72.9 L518,64.3 L516,76.3 L514,75.7 L512,70.6 L510,71.2 L508,72.9 L506,72.3 L504,64.6 L502,69.6 L500,70.4 L498,63.3 L496,66.7 L494,66.1 L492,62.4 L490,61.1 L488,60.9 L486,59.4 L484,55.8 L482,56.8 L480,55.6 L478,54.6 L476,54.3 L474,53.5 L472,53.2 L470,52.9 L468,52.6 L466,52.5 L464,52.5 L462,52.5 L460,52.5 L458,52.5 L456,52.6 L454,52.6 L452,52.9 L450,53.3 L448,53.0 L446,54.0 L444,55.0 L442,54.8 L440,56.3 L438,57.5 L436,58.3 L434,58.3 L432,58.1 L430,59.4 L428,59.9 L426,62.6 L424,66.3 L422,62.7 L420,67.1 L418,67.3 L416,77.4 L414,69.1 L412,68.3 L410,70.7 L408,71.0 L406,80.1 L404,68.7 L402,71.6 L400,68.9 L398,68.9 L396,74.5 L394,79.4 L392,73.6 L390,79.0 L388,74.2 L386,75.5 L384,80.0 L382,81.1 L380,69.4 L378,76.2 L376,68.7 L374,69.0 L372,69.8 L370,71.5 L368,65.8 L366,62.6 L364,62.9 L362,66.8 L360,64.5 L358,67.8 L356,67.5 L354,64.0 L352,64.7 L350,71.9 L348,65.7 L346,74.2 L344,67.0 L342,74.5 L340,69.4 L338,80.7 L336,75.4 L334,73.5 L332,69.8 L330,70.8 L328,81.3 L326,68.7 L324,75.4 L322,65.5 L320,71.1 L318,72.6 L316,66.7 L314,71.8 L312,68.5 L310,82.2 L308,74.7 L306,72.9 L304,85.2 L302,82.0 L300,73.2 L298,84.8 L296,71.8 L294,71.7 L292,72.3 L290,84.5 L288,78.9 L286,84.2 L284,78.9 L282,74.0 L280,71.9 L278,70.7 L276,69.5 L274,70.0 L272,64.9 L270,65.2 L268,61.1 L266,60.5 L264,65.4 L262,65.3 L260,72.1 L258,67.8 L256,67.1 L254,75.4 L252,78.2 L250,79.0 L248,78.2 L246,81.8 L244,77.8 L242,73.8 L240,76.3 L238,76.0 L236,76.2 L234,87.2 L232,79.5 L230,81.1 L228,88.9 L226,72.8 L224,75.8 L222,84.8 L220,69.6 L218,78.1 L216,65.6 L214,69.4 L212,63.7 L210,65.2 L208,59.2 L206,57.1 L204,58.1 L202,57.7 L200,55.2 L198,57.1 L196,58.9 L194,59.9 L192,59.6 L190,61.7 L188,70.3 L186,72.6 L184,74.6 L182,67.3 L180,64.6 L178,68.3 L176,66.3 L174,72.1 L172,71.7 L170,70.8 L168,65.8 L166,68.0 L164,64.5 L162,65.9 L160,73.0 L158,69.8 L156,70.5 L154,70.9 L152,65.1 L150,75.8 L148,70.0 L146,67.0 L144,72.7 L142,78.7 L140,72.2 L138,70.9 L136,76.7 L134,67.9 L132,69.1 L130,67.5 L128,72.4 L126,70.2 L124,67.8 L122,68.2 L120,72.1 L118,78.5 L116,78.2 L114,74.4 L112,71.4 L110,75.9 L108,68.5 L106,64.3 L104,72.1 L102,68.5 L100,68.4 L98,79.5 L96,71.1 L94,69.3 L92,74.7 L90,69.1 L88,62.1 L86,62.3 L84,58.5 L82,56.8 L80,56.9 L78,56.9 L76,60.3 L74,66.0 L72,67.8 L70,64.1 L68,70.8 L66,77.2 L64,74.7 L62,77.0 L60,79.9 L58,78.4 L56,67.7 L54,69.3 L52,73.2 L50,81.4 L48,77.6 L46,74.5 L44,70.4 L42,78.3 L40,73.3 L38,71.2 L36,76.5 L34,67.6 L32,74.7 L30,76.1 L28,69.6 L26,71.7 L24,69.5 L22,80.7 L20,83.1 L18,77.3 L16,78.6 L14,70.8 L12,76.0 L10,70.3 L8,69.8 L6,70.1 L4,77.9 L2,79.5 L0,73.8Z'/></svg>"); }
+
+.clip--fx { --wave: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'><path fill='%23ff3d17' fill-opacity='.66' d='M0,17.9 L2,16.3 L4,22.4 L6,32.4 L8,34.7 L10,36.0 L12,34.0 L14,38.2 L16,35.2 L18,36.7 L20,26.6 L22,32.6 L24,40.4 L26,40.5 L28,42.0 L30,40.0 L32,40.9 L34,43.7 L36,40.9 L38,26.5 L40,29.0 L42,28.8 L44,36.9 L46,36.4 L48,36.6 L50,36.3 L52,40.6 L54,42.7 L56,43.6 L58,34.0 L60,36.7 L62,39.7 L64,41.2 L66,40.5 L68,42.5 L70,44.4 L72,42.0 L74,41.3 L76,18.9 L78,29.1 L80,29.6 L82,33.4 L84,34.5 L86,33.5 L88,38.0 L90,35.2 L92,34.3 L94,31.4 L96,35.2 L98,33.4 L100,40.8 L102,41.4 L104,40.0 L106,43.6 L108,42.0 L110,39.4 L112,41.8 L114,23.8 L116,25.7 L118,29.7 L120,36.6 L122,40.3 L124,41.6 L126,41.5 L128,41.4 L130,43.7 L132,37.5 L134,41.2 L136,39.4 L138,42.5 L140,42.5 L142,40.7 L144,42.6 L146,44.4 L148,43.3 L150,7.4 L152,27.6 L154,22.5 L156,25.7 L158,28.7 L160,27.4 L162,35.6 L164,37.8 L166,35.9 L168,38.6 L170,28.3 L172,32.7 L174,35.7 L176,41.0 L178,41.0 L180,43.3 L182,42.4 L184,39.3 L186,39.7 L188,16.7 L190,31.9 L192,35.1 L194,33.5 L196,34.0 L198,37.1 L200,41.9 L202,37.8 L204,39.5 L206,42.9 L208,37.5 L210,36.1 L212,41.2 L214,40.5 L216,43.8 L218,40.6 L220,44.1 L222,40.6 L224,43.3 L226,23.9 L228,13.2 L230,24.3 L232,28.6 L234,26.5 L236,34.9 L238,36.5 L240,37.6 L242,39.6 L244,30.4 L246,33.1 L248,37.5 L250,38.7 L252,39.6 L254,40.8 L256,43.6 L258,43.0 L260,40.5 L262,42.7 L264,25.4 L266,34.8 L268,35.8 L270,33.4 L272,37.0 L274,36.0 L276,39.1 L278,40.4 L280,41.3 L282,33.9 L284,36.4 L286,37.5 L288,40.9 L290,40.3 L292,43.9 L294,44.3 L296,44.4 L298,41.5 L300,21.4 L302,16.1 L304,17.0 L306,30.2 L308,30.3 L310,26.1 L312,36.6 L314,34.7 L316,38.6 L318,35.7 L320,31.1 L322,39.6 L324,37.0 L326,42.0 L328,38.5 L330,42.9 L332,43.5 L334,42.6 L336,42.1 L338,18.8 L340,32.8 L342,31.2 L344,38.3 L346,35.1 L348,41.1 L350,38.4 L352,42.5 L354,43.1 L356,41.5 L358,35.7 L360,40.6 L362,40.6 L364,43.5 L366,44.1 L368,43.2 L370,41.4 L372,42.6 L374,43.4 L376,21.6 L378,17.2 L380,29.3 L382,22.1 L384,26.6 L386,32.4 L388,35.1 L390,34.0 L392,38.0 L394,26.0 L396,34.8 L398,40.3 L400,41.5 L402,41.2 L404,42.8 L406,39.1 L408,42.5 L410,42.6 L412,43.5 L414,29.5 L416,24.9 L418,35.8 L420,37.3 L422,41.1 L424,38.9 L426,41.5 L428,43.2 L430,43.2 L432,38.1 L434,39.2 L436,39.5 L438,39.9 L440,40.8 L442,42.7 L444,40.3 L446,41.6 L448,44.6 L450,6.1 L452,14.8 L454,28.6 L456,26.2 L458,25.4 L460,30.4 L462,31.5 L464,37.2 L466,39.1 L468,40.2 L470,31.0 L472,34.6 L474,38.0 L476,37.4 L478,40.2 L480,39.9 L482,40.0 L484,43.6 L486,40.7 L488,20.0 L490,28.5 L492,32.2 L494,32.2 L496,35.5 L498,40.6 L500,37.8 L502,39.8 L504,43.1 L506,40.4 L508,34.7 L510,39.0 L512,40.9 L514,39.7 L516,39.9 L518,44.5 L520,41.1 L522,42.9 L524,43.9 L526,22.3 L528,27.1 L530,18.1 L532,23.6 L534,25.8 L536,35.1 L538,34.2 L540,39.7 L542,37.2 L544,33.1 L546,35.6 L548,40.7 L550,36.5 L552,37.2 L554,38.3 L556,41.7 L558,38.9 L560,42.3 L562,42.9 L564,31.7 L566,32.7 L568,35.8 L570,35.6 L572,38.3 L574,36.2 L576,39.0 L578,38.1 L580,39.9 L582,31.5 L584,36.1 L586,41.3 L588,39.0 L590,42.0 L592,43.1 L594,40.4 L596,41.9 L598,42.4 L600,21.1 L600,78.9 L598,57.6 L596,58.1 L594,59.6 L592,56.9 L590,58.0 L588,61.0 L586,58.7 L584,63.9 L582,68.5 L580,60.1 L578,61.9 L576,61.0 L574,63.8 L572,61.7 L570,64.4 L568,64.2 L566,67.3 L564,68.3 L562,57.1 L560,57.7 L558,61.1 L556,58.3 L554,61.7 L552,62.8 L550,63.5 L548,59.3 L546,64.4 L544,66.9 L542,62.8 L540,60.3 L538,65.8 L536,64.9 L534,74.2 L532,76.4 L530,81.9 L528,72.9 L526,77.7 L524,56.1 L522,57.1 L520,58.9 L518,55.5 L516,60.1 L514,60.3 L512,59.1 L510,61.0 L508,65.3 L506,59.6 L504,56.9 L502,60.2 L500,62.2 L498,59.4 L496,64.5 L494,67.8 L492,67.8 L490,71.5 L488,80.0 L486,59.3 L484,56.4 L482,60.0 L480,60.1 L478,59.8 L476,62.6 L474,62.0 L472,65.4 L470,69.0 L468,59.8 L466,60.9 L464,62.8 L462,68.5 L460,69.6 L458,74.6 L456,73.8 L454,71.4 L452,85.2 L450,93.9 L448,55.4 L446,58.4 L444,59.7 L442,57.3 L440,59.2 L438,60.1 L436,60.5 L434,60.8 L432,61.9 L430,56.8 L428,56.8 L426,58.5 L424,61.1 L422,58.9 L420,62.7 L418,64.2 L416,75.1 L414,70.5 L412,56.5 L410,57.4 L408,57.5 L406,60.9 L404,57.2 L402,58.8 L400,58.5 L398,59.7 L396,65.2 L394,74.0 L392,62.0 L390,66.0 L388,64.9 L386,67.6 L384,73.4 L382,77.9 L380,70.7 L378,82.8 L376,78.4 L374,56.6 L372,57.4 L370,58.6 L368,56.8 L366,55.9 L364,56.5 L362,59.4 L360,59.4 L358,64.3 L356,58.5 L354,56.9 L352,57.5 L350,61.6 L348,58.9 L346,64.9 L344,61.7 L342,68.8 L340,67.2 L338,81.2 L336,57.9 L334,57.4 L332,56.5 L330,57.1 L328,61.5 L326,58.0 L324,63.0 L322,60.4 L320,68.9 L318,64.3 L316,61.4 L314,65.3 L312,63.4 L310,73.9 L308,69.7 L306,69.8 L304,83.0 L302,83.9 L300,78.6 L298,58.5 L296,55.6 L294,55.7 L292,56.1 L290,59.7 L288,59.1 L286,62.5 L284,63.6 L282,66.1 L280,58.7 L278,59.6 L276,60.9 L274,64.0 L272,63.0 L270,66.6 L268,64.2 L266,65.2 L264,74.6 L262,57.3 L260,59.5 L258,57.0 L256,56.4 L254,59.2 L252,60.4 L250,61.3 L248,62.5 L246,66.9 L244,69.6 L242,60.4 L240,62.4 L238,63.5 L236,65.1 L234,73.5 L232,71.4 L230,75.7 L228,86.8 L226,76.1 L224,56.7 L222,59.4 L220,55.9 L218,59.4 L216,56.2 L214,59.5 L212,58.8 L210,63.9 L208,62.5 L206,57.1 L204,60.5 L202,62.2 L200,58.1 L198,62.9 L196,66.0 L194,66.5 L192,64.9 L190,68.1 L188,83.3 L186,60.3 L184,60.7 L182,57.6 L180,56.7 L178,59.0 L176,59.0 L174,64.3 L172,67.3 L170,71.7 L168,61.4 L166,64.1 L164,62.2 L162,64.4 L160,72.6 L158,71.3 L156,74.3 L154,77.5 L152,72.4 L150,92.6 L148,56.7 L146,55.6 L144,57.4 L142,59.3 L140,57.5 L138,57.5 L136,60.6 L134,58.8 L132,62.5 L130,56.3 L128,58.6 L126,58.5 L124,58.4 L122,59.7 L120,63.4 L118,70.3 L116,74.3 L114,76.2 L112,58.2 L110,60.6 L108,58.0 L106,56.4 L104,60.0 L102,58.6 L100,59.2 L98,66.6 L96,64.8 L94,68.6 L92,65.7 L90,64.8 L88,62.0 L86,66.5 L84,65.5 L82,66.6 L80,70.4 L78,70.9 L76,81.1 L74,58.7 L72,58.0 L70,55.6 L68,57.5 L66,59.5 L64,58.8 L62,60.3 L60,63.3 L58,66.0 L56,56.4 L54,57.3 L52,59.4 L50,63.7 L48,63.4 L46,63.6 L44,63.1 L42,71.2 L40,71.0 L38,73.5 L36,59.1 L34,56.3 L32,59.1 L30,60.0 L28,58.0 L26,59.5 L24,59.6 L22,67.4 L20,73.4 L18,63.3 L16,64.8 L14,61.8 L12,66.0 L10,64.0 L8,65.3 L6,67.6 L4,77.6 L2,83.7 L0,82.1Z'/></svg>"); }
+
+.clip--music {
+  --wave: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 100' preserveAspectRatio='none'><path fill='%23ff3d17' fill-opacity='.5' d='M0,35.6 L2,31.1 L4,32.3 L6,38.3 L8,38.4 L10,37.8 L12,32.6 L14,36.6 L16,29.2 L18,29.6 L20,23.5 L22,24.9 L24,35.4 L26,32.7 L28,34.5 L30,27.1 L32,28.3 L34,35.9 L36,25.8 L38,31.5 L40,29.1 L42,23.3 L44,32.3 L46,27.5 L48,23.9 L50,19.5 L52,28.9 L54,33.4 L56,35.3 L58,22.8 L60,20.8 L62,23.8 L64,25.8 L66,21.3 L68,27.6 L70,34.8 L72,24.6 L74,21.6 L76,29.2 L78,35.5 L80,33.0 L82,34.9 L84,33.8 L86,29.3 L88,34.7 L90,26.8 L92,22.3 L94,31.6 L96,30.3 L98,20.4 L100,33.5 L102,32.6 L104,26.9 L106,36.6 L108,30.7 L110,21.3 L112,28.5 L114,26.1 L116,22.6 L118,23.1 L120,30.9 L122,35.5 L124,36.2 L126,34.0 L128,32.0 L130,37.3 L132,35.8 L134,37.0 L136,28.1 L138,33.6 L140,32.0 L142,24.6 L144,30.5 L146,36.3 L148,32.4 L150,25.0 L152,37.2 L154,29.5 L156,29.3 L158,29.5 L160,24.4 L162,33.5 L164,34.9 L166,29.2 L168,32.3 L170,24.8 L172,24.1 L174,24.5 L176,33.6 L178,31.5 L180,36.6 L182,32.9 L184,21.7 L186,21.9 L188,21.4 L190,33.2 L192,33.5 L194,26.4 L196,22.7 L198,25.7 L200,35.0 L202,21.2 L204,23.7 L206,33.2 L208,30.6 L210,19.6 L212,29.2 L214,23.6 L216,33.8 L218,20.4 L220,33.4 L222,19.0 L224,29.8 L226,33.6 L228,19.0 L230,26.7 L232,28.3 L234,21.5 L236,31.5 L238,31.7 L240,31.4 L242,33.7 L244,29.9 L246,26.0 L248,28.9 L250,27.6 L252,27.4 L254,28.9 L256,36.3 L258,33.6 L260,24.6 L262,31.4 L264,27.8 L266,35.2 L268,33.1 L270,25.0 L272,28.6 L274,23.4 L276,28.3 L278,30.1 L280,31.2 L282,31.1 L284,28.2 L286,25.0 L288,30.8 L290,27.2 L292,37.3 L294,38.1 L296,38.3 L298,29.4 L300,37.7 L302,31.6 L304,29.2 L306,37.6 L308,35.7 L310,29.1 L312,38.9 L314,35.2 L316,38.9 L318,33.5 L320,35.6 L322,41.4 L324,35.4 L326,41.2 L328,34.3 L330,41.1 L332,41.9 L334,39.9 L336,38.7 L338,35.3 L340,41.4 L342,37.8 L344,42.2 L346,37.1 L348,42.5 L350,37.9 L352,42.5 L354,42.7 L356,39.6 L358,38.9 L360,41.3 L362,39.2 L364,42.6 L366,43.1 L368,41.0 L370,37.4 L372,39.5 L374,40.7 L376,41.4 L378,37.5 L380,41.9 L382,35.8 L384,36.6 L386,39.2 L388,40.0 L390,37.4 L392,40.2 L394,37.1 L396,39.5 L398,42.5 L400,42.3 L402,40.6 L404,42.0 L406,34.9 L408,40.1 L410,39.9 L412,41.0 L414,40.0 L416,33.2 L418,40.0 L420,39.3 L422,42.2 L424,37.5 L426,40.1 L428,42.0 L430,41.1 L432,41.5 L434,38.9 L436,36.0 L438,34.3 L440,34.6 L442,37.8 L444,31.8 L446,34.4 L448,41.3 L450,32.7 L452,34.3 L454,40.3 L456,36.7 L458,33.7 L460,35.9 L462,35.0 L464,39.5 L466,40.6 L468,40.9 L470,36.5 L472,35.9 L474,37.3 L476,34.4 L478,37.3 L480,36.0 L482,35.3 L484,41.6 L486,35.6 L488,35.7 L490,38.0 L492,38.3 L494,35.8 L496,37.0 L498,41.5 L500,36.4 L502,38.0 L504,42.5 L506,37.4 L508,37.4 L510,38.9 L512,39.4 L514,35.9 L516,35.3 L518,43.2 L520,36.8 L522,39.8 L524,41.8 L526,41.8 L528,42.3 L530,35.9 L532,36.9 L534,36.4 L536,41.6 L538,39.5 L540,43.4 L542,39.7 L544,42.2 L546,40.7 L548,43.2 L550,36.2 L552,35.3 L554,35.3 L556,39.7 L558,34.1 L560,39.5 L562,40.2 L564,41.6 L566,39.7 L568,39.9 L570,37.2 L572,38.4 L574,33.1 L576,35.3 L578,31.8 L580,33.8 L582,33.4 L584,32.9 L586,37.7 L588,30.2 L590,35.1 L592,36.9 L594,28.5 L596,32.0 L598,32.9 L600,37.5 L600,62.5 L598,67.1 L596,68.0 L594,71.5 L592,63.1 L590,64.9 L588,69.8 L586,62.3 L584,67.1 L582,66.6 L580,66.2 L578,68.2 L576,64.7 L574,66.9 L572,61.6 L570,62.8 L568,60.1 L566,60.3 L564,58.4 L562,59.8 L560,60.5 L558,65.9 L556,60.3 L554,64.7 L552,64.7 L550,63.8 L548,56.8 L546,59.3 L544,57.8 L542,60.3 L540,56.6 L538,60.5 L536,58.4 L534,63.6 L532,63.1 L530,64.1 L528,57.7 L526,58.2 L524,58.2 L522,60.2 L520,63.2 L518,56.8 L516,64.7 L514,64.1 L512,60.6 L510,61.1 L508,62.6 L506,62.6 L504,57.5 L502,62.0 L500,63.6 L498,58.5 L496,63.0 L494,64.2 L492,61.7 L490,62.0 L488,64.3 L486,64.4 L484,58.4 L482,64.7 L480,64.0 L478,62.7 L476,65.6 L474,62.7 L472,64.1 L470,63.5 L468,59.1 L466,59.4 L464,60.5 L462,65.0 L460,64.1 L458,66.3 L456,63.3 L454,59.7 L452,65.7 L450,67.3 L448,58.7 L446,65.6 L444,68.2 L442,62.2 L440,65.4 L438,65.7 L436,64.0 L434,61.1 L432,58.5 L430,58.9 L428,58.0 L426,59.9 L424,62.5 L422,57.8 L420,60.7 L418,60.0 L416,66.8 L414,60.0 L412,59.0 L410,60.1 L408,59.9 L406,65.1 L404,58.0 L402,59.4 L400,57.7 L398,57.5 L396,60.5 L394,62.9 L392,59.8 L390,62.6 L388,60.0 L386,60.8 L384,63.4 L382,64.2 L380,58.1 L378,62.5 L376,58.6 L374,59.3 L372,60.5 L370,62.6 L368,59.0 L366,56.9 L364,57.4 L362,60.8 L360,58.7 L358,61.1 L356,60.4 L354,57.3 L352,57.5 L350,62.1 L348,57.5 L346,62.9 L344,57.8 L342,62.2 L340,58.6 L338,64.7 L336,61.3 L334,60.1 L332,58.1 L330,58.9 L328,65.7 L326,58.8 L324,64.6 L322,58.6 L320,64.4 L318,66.5 L316,61.1 L314,64.8 L312,61.1 L310,70.9 L308,64.3 L306,62.4 L304,70.8 L302,68.4 L300,62.3 L298,70.6 L296,61.7 L294,61.9 L292,62.7 L290,72.8 L288,69.2 L286,75.0 L284,71.8 L282,68.9 L280,68.8 L278,69.9 L276,71.7 L274,76.6 L272,71.4 L270,75.0 L268,66.9 L266,64.8 L264,72.2 L262,68.6 L260,75.4 L258,66.4 L256,63.7 L254,71.1 L252,72.6 L250,72.4 L248,71.1 L246,74.0 L244,70.1 L242,66.3 L240,68.6 L238,68.3 L236,68.5 L234,78.5 L232,71.7 L230,73.3 L228,81.0 L226,66.4 L224,70.2 L222,81.0 L220,66.6 L218,79.6 L216,66.2 L214,76.4 L212,70.8 L210,80.4 L208,69.4 L206,66.8 L204,76.3 L202,78.8 L200,65.0 L198,74.3 L196,77.3 L194,73.6 L192,66.5 L190,66.8 L188,78.6 L186,78.1 L184,78.3 L182,67.1 L180,63.4 L178,68.5 L176,66.4 L174,75.5 L172,75.9 L170,75.2 L168,67.7 L166,70.8 L164,65.1 L162,66.5 L160,75.6 L158,70.5 L156,70.7 L154,70.5 L152,62.8 L150,75.0 L148,67.6 L146,63.7 L144,69.5 L142,75.4 L140,68.0 L138,66.4 L136,71.9 L134,63.0 L132,64.2 L130,62.7 L128,68.0 L126,66.0 L124,63.8 L122,64.5 L120,69.1 L118,76.9 L116,77.4 L114,73.9 L112,71.5 L110,78.7 L108,69.3 L106,63.4 L104,73.1 L102,67.4 L100,66.5 L98,79.6 L96,69.7 L94,68.4 L92,77.7 L90,73.2 L88,65.3 L86,70.7 L84,66.2 L82,65.1 L80,67.0 L78,64.5 L76,70.8 L74,78.4 L72,75.4 L70,65.2 L68,72.4 L66,78.7 L64,74.2 L62,76.2 L60,79.2 L58,77.2 L56,64.7 L54,66.6 L52,71.1 L50,80.5 L48,76.1 L46,72.5 L44,67.7 L42,76.7 L40,70.9 L38,68.5 L36,74.2 L34,64.1 L32,71.7 L30,72.9 L28,65.5 L26,67.3 L24,64.6 L22,75.1 L20,76.5 L18,70.4 L16,70.8 L14,63.4 L12,67.4 L10,62.2 L8,61.6 L6,61.7 L4,67.7 L2,68.9 L0,64.4Z'/></svg>");
+  --tint: 0.1;
+}
+
+/* The fade: the volume line an editor would see, drawn corner to corner
+   across the end being faded, with the silenced side darkened. */
+.clip--music-out {
+  --clip-fade: linear-gradient(to bottom left, rgba(5, 5, 5, 0.62) 49%, rgba(255, 61, 23, 0.95) 49.6% 50.8%, transparent 51.4%);
+  --fade-side: right;
+}
+
+.clip--music-in {
+  --clip-fade: linear-gradient(to bottom right, rgba(5, 5, 5, 0.62) 49%, rgba(255, 61, 23, 0.95) 49.6% 50.8%, transparent 51.4%);
+  --fade-side: left;
+}
+
+/* Step 4: the export happens on the picture ------------------------------
+   The same ring as the upload owns the centre. The deliverables pop in
+   around it as it fills, loose and floating rather than lined up, and at
+   100% the frame floods orange out of the ring and they burst into place
+   around the closing line.
+   ------------------------------------------------------------------------ */
+
+.monitor-export {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  opacity: var(--export-alpha, 0);
+  pointer-events: none;
+  transition: opacity 500ms var(--ease-out), background-color 500ms var(--ease-out);
+}
+
+/* Collapses into its own centre as the flood comes out of it. */
+.progress-ring--export .ring-label {
+  display: none;
+}
+
+.progress-ring--export {
+  opacity: calc(1 - var(--readout-out, 0));
+  transform: scale(calc(1 - var(--readout-out, 0) * 0.35));
+  transition: opacity 340ms var(--ease-out), transform 480ms var(--ease-out);
+}
+
+/* Above the flood, so the same files carry straight on to the end screen.
+   Position, tilt, scale and opacity are all written by process.js from two
+   poses (around the ring, then around the closing line) on the scene's
+   curve, so none of it is transitioned here. */
+.monitor-files {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.export-file {
+  position: absolute;
+  top: calc(var(--y, 50) * 1%);
+  left: calc(var(--x, 50) * 1%);
+  display: grid;
+  justify-items: center;
+  gap: 0.45rem;
+  text-align: center;
+  opacity: var(--o, 0);
+  transform: translate(-50%, -50%) rotate(calc(var(--r, 0) * 1deg)) scale(var(--s, 1));
+  will-change: transform;
+}
+
+/* Alive: each file floats on its own slow loop, out of phase with the
+   others. Individual properties, so it composes with the pose above. */
+.export-file img {
+  width: clamp(40px, 4.2vw, 54px);
+  height: auto;
+  filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.55));
+  animation: file-float 1.9s ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+
+.export-file--master img {
+  width: clamp(52px, 5.4vw, 70px);
+}
+
+@keyframes file-float {
+  from { translate: 0 3px;  rotate: -3.5deg; }
+  to   { translate: 0 -5px; rotate: 3.5deg; }
+}
+
+.export-file span {
+  font: 500 var(--fs-label) / 1.2 var(--font-mono);
+  color: #fff;
+  opacity: var(--label, 1);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+  white-space: nowrap;
+}
+
+.export-file:nth-child(1) { --float-delay: -0.4s; }
+.export-file:nth-child(2) { --float-delay: -1.9s; }
+.export-file:nth-child(3) { --float-delay: -0.9s; }
+.export-file:nth-child(4) { --float-delay: -2.3s; }
+.export-file:nth-child(5) { --float-delay: -1.3s; }
+.export-file:nth-child(6) { --float-delay: -0.1s; }
+.export-file:nth-child(7) { --float-delay: -1.6s; }
+
+/* The payoff. The flood grows out of the ring as a circle and the line is
+   stated plainly: the one moment in the sequence allowed to be loud. */
+.monitor-success {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  background: radial-gradient(125% 95% at 50% 45%, #ff5f33 0%, var(--signal) 46%, #c22b0a 100%);
+  clip-path: circle(calc(var(--success, 0) * 75%) at 50% 50%);
+  pointer-events: none;
+}
+
+.success-head {
+  position: absolute;
+  top: 28%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  transform: translate(-50%, -50%) scale(calc(1 + 0.03 * var(--hold, 0)));
+}
+
+.success-caption {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  opacity: var(--headline, 0);
+  transform: translate(-50%, calc((1 - var(--headline, 0)) * 10px));
+}
+
+/* Confetti: the reward. Each piece is placed by process.js. */
+.monitor-confetti {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.monitor-confetti i {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--w, 7px);
+  height: var(--h, 11px);
+  border-radius: var(--round, 2px);
+  background: var(--tone, #fff);
+  opacity: var(--o, 0);
+  transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--r, 0deg));
+  will-change: transform;
+}
+
+.success-mark {
+  position: relative;
+  width: clamp(2.2rem, 4vw, 3.1rem);
+  height: clamp(2.2rem, 4vw, 3.1rem);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 50%;
+  opacity: var(--headline, 0);
+  transform: scale(calc(0.55 + 0.45 * var(--headline, 0)));
+}
+
+/* A drawn tick, so no glyph is involved. */
+.success-mark::after {
+  content: "";
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 30%;
+  height: 56%;
+  border-right: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: translate(-50%, -55%) rotate(45deg);
+}
+
+.monitor-success strong {
+  font-size: clamp(1.9rem, 3.8vw, 3.4rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: #fff;
+  opacity: var(--headline, 0);
+  transform: translate3d(0, calc((1 - var(--headline, 0)) * 14px), 0);
+}
+
+/* Step 1: intake ---------------------------------------------------------- */
+
+.workbench-intake {
+  position: absolute;
+  /* Bottom inset rather than padding: a percentage padding would resolve
+     against the canvas width, an inset resolves against its height - which
+     is what the docked timeline actually occupies. */
+  inset: 0 0 calc(var(--timeline-h) * var(--lanes-alpha, 0)) 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.8rem, 1.8vh, 1.4rem);
+  pointer-events: none;
+  transition: opacity 360ms var(--ease-out);
+}
+
+.intake-deck {
+  /* Distance from the ring's centre to each file's centre: the ring's radius
+     plus enough to clear a file and its name. */
+  --orbit: calc(var(--ring-size) / 2 + 6rem);
+
+  position: absolute;
+  inset: 0;
+  perspective: 1000px;
+}
+
+/* Each axis is capped against the canvas separately, so on a short canvas the
+   circle flattens into an ellipse rather than pushing files out of frame. */
+.intake-file {
+  position: absolute;
+  left: calc(50% + var(--ox) * min(var(--orbit), 40%));
+  top: calc(50% + var(--oy) * min(var(--orbit-y, var(--orbit)), 34%));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  text-align: center;
+  transform-origin: 50% 80%;
+  /* Waiting just outside its slot, a little small and a little turned. It
+     drifts in, settles with the faintest overshoot, and goes back out the
+     same way if the visitor scrolls back. */
+  opacity: 0;
+  scale: 0.74;
+  translate: calc(var(--ox, 0) * 46px) calc(var(--oy, 0) * 46px);
+  rotate: calc(var(--land-tilt, 0) * 1deg);
+  transform: translate(-50%, -50%) rotate(var(--orbit-angle, 0deg));
+  transition:
+    opacity 420ms ease,
+    scale 680ms cubic-bezier(0.22, 1.15, 0.36, 1),
+    translate 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    rotate 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* --ox / --oy (the unit position on the orbit) are written by process.js
+   from each file's data-angle, so the same values can spiral inwards at the
+   handoff. The tilt is just character. */
+.intake-file:nth-child(1) { --orbit-angle: 5deg;  --wiggle-delay: -0.10s; --land-tilt: -10; }
+.intake-file:nth-child(2) { --orbit-angle: 7deg;  --wiggle-delay: -0.31s; --land-tilt: 8; }
+.intake-file:nth-child(3) { --orbit-angle: 3deg;  --wiggle-delay: -0.05s; --land-tilt: -7; }
+.intake-file:nth-child(4) { --orbit-angle: -4deg; --wiggle-delay: -0.22s; --land-tilt: 10; }
+.intake-file:nth-child(5) { --orbit-angle: -7deg; --wiggle-delay: -0.38s; --land-tilt: -8; }
+.intake-file:nth-child(6) { --orbit-angle: -3deg; --wiggle-delay: -0.16s; --land-tilt: 7; }
+
+.intake-file.is-in {
+  opacity: 1;
+  scale: 1;
+  translate: 0 0;
+  rotate: 0deg;
+}
+
+/* Handed off: the files are drawn into the ring on a spiral, one after the
+   other, and the impact lands as the last one goes in. process.js drives
+   the path (--ox / --oy), the per-file progress (--handoff) and the fade
+   (--vanish), all on the scene's curve, so no CSS easing here. */
+.intake-file.is-handing-off {
+  opacity: calc(1 - var(--vanish, 0));
+  scale: 1;
+  translate: 0 0;
+  rotate: 0deg;
+  transform:
+    translate(-50%, -50%)
+    rotate(calc(var(--orbit-angle, 0deg) * (1 - var(--handoff, 0)) + var(--handoff, 0) * 70deg))
+    scale(calc(1 - var(--handoff, 0) * 0.74));
+  transition: none;
+}
+
+.intake-file-icon {
+  display: block;
+  width: 72px;
+  height: 88px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.75));
+  /* Restless as the upload nears 100%. The amplitude is --wiggle (0..1, from
+     process.js); at 0 the animation runs but moves nothing. Individual
+     rotate/translate, so it composes with the file's own transform. */
+  animation: file-wiggle 0.42s ease-in-out var(--wiggle-delay, 0s) infinite alternate;
+}
+
+/* The document icon is square with wide margins; cropping the margins makes
+   the page itself the same size as its neighbours. */
+.intake-file-icon--doc {
+  object-fit: cover;
+}
+
+@keyframes file-wiggle {
+  from { rotate: calc(var(--wiggle, 0) * -3deg); translate: 0 calc(var(--wiggle, 0) * 1.2px); }
+  to   { rotate: calc(var(--wiggle, 0) * 3deg);  translate: 0 calc(var(--wiggle, 0) * -1.2px); }
+}
+
+.intake-file-name {
+  font-size: var(--fs-label);
+  line-height: 1.25;
+  color: var(--white-76);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+
+/* One progress element, used by both the upload and the render. r=53 gives a
+   circumference of 333.0, which is the dash length below. */
+.progress-ring {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--ring-size);
+  aspect-ratio: 1;
+}
+
+/* Plain: one size, one weight, from 0% to 100%. */
+.progress-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  overflow: visible;
+}
+
+.progress-ring circle {
+  fill: none;
+}
+
+.ring-track { stroke: none; }
+
+/* One weight and one glow throughout: the ring grows with the fill, the line
+   does not thicken. */
+.ring-fill {
+  stroke: var(--signal);
+  stroke-width: 2.75;
+  stroke-linecap: round;
+  stroke-dasharray: 333;
+  stroke-dashoffset: calc(333 - 333 * var(--ring, 0));
+  /* A round cap on an empty dash still paints a dot at 12 o'clock. */
+  stroke-opacity: clamp(0, calc(var(--ring, 0) * 60), 1);
+  filter: drop-shadow(0 0 6px rgba(255, 61, 23, 0.5));
+}
+
+/* The centre belongs to the instruction (step 1) or the status (step 4); the
+   number sits under the ring, in the gap the orbit leaves at 6 o'clock. */
+.ring-pct {
+  position: absolute;
+  top: calc(100% + 0.8rem);
+  left: 50%;
+  font: 500 clamp(1rem, 1.5vw, 1.3rem) / 1 var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--signal);
+  transform: translateX(-50%);
+}
+
+.ring-label {
+  position: absolute;
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--white-76);
+  white-space: nowrap;
+}
+
+/* Rail - the only narrator ------------------------------------------------ */
+
+/* Top left, where the eye lands first. At the foot of the frame the step was
+   too easily missed, and it had to dodge the timeline as well. */
+.process-rail {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 8;
+  padding: clamp(1.1rem, 4%, 2.2rem) clamp(1.2rem, 4%, 2.6rem) 0;
+  opacity: calc(1 - var(--success, 0));
+  pointer-events: none;
+  transition: opacity 320ms var(--ease-out);
+}
+
+/* Its own gradient, so the type reads over any frame underneath it. */
+.process-rail::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(100% + clamp(4.5rem, 14%, 7.5rem));
+  background: linear-gradient(180deg,
+    rgba(4, 4, 4, 0.97) 0%,
+    rgba(4, 4, 4, 0.9) 22%,
+    rgba(4, 4, 4, 0.55) 58%,
+    transparent 100%);
+  /* Only needed once there is a picture to read over. On the black upload
+     frame it would just darken the files at the top of the orbit. */
+  opacity: var(--scrim, 0);
+  pointer-events: none;
+}
+
+.rail-steps {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: clamp(4.2rem, 8.5vh, 6rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rail-step {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  width: max-content;
+  max-width: 100%;
+  opacity: 0;
+  transform: translate3d(0, -10px, 0);
+  pointer-events: none;
+  transition: opacity 520ms var(--ease-out), transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rail-step.is-active {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.rail-step-index {
+  margin-bottom: 0.7rem;
+  font: 500 var(--fs-label) / 1 var(--font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--signal);
+}
+
+.rail-step h3 {
+  margin: 0;
+  font-size: clamp(1.5rem, 2.6vw, 2.6rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--white);
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.85);
+}
+
+/* The closing beat swaps the ordinal for the payoff. */
+.rail-step--done .rail-step-index { color: var(--white); }
+.rail-step--done h3 { color: var(--signal); }
+
+/* Responsive -------------------------------------------------------------- */
+
+@media (max-width: 1080px) {
+  .process-workbench {
+    grid-template-columns: minmax(0, 1fr) minmax(13rem, 17rem);
+    gap: clamp(1.5rem, 3.5vw, 3rem);
+  }
+
+  .rail-step h3 {
+    font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  }
+}
+
+@media (max-width: 860px) {
+  .process-sequence.is-engaged .process-track {
+    height: 2048vh;
+  }
+
+  .process-stage {
+    align-items: center;
+  }
+
+
+  .rail-step h3 {
+    font-size: clamp(1.3rem, 4.6vw, 1.8rem);
+  }
+
+  /* The canvas is ratio-driven now; a fixed height here squashed it out of
+     16:9 on narrow screens. */
+  .window-canvas {
+    --timeline-h: clamp(112px, 32%, 168px);
+  }
+
+  .intake-file-icon {
+    width: 54px;
+    height: 66px;
+  }
+
+}
+
+@media (max-width: 560px) {
+  .intake-file-icon {
+    width: 44px;
+    height: 54px;
+  }
+
+  .intake-file-name {
+    width: 6.5rem;
+    white-space: normal;
+  }
+
+  .intake-deck { --orbit: calc(var(--ring-size) / 2 + 3.8rem); }
+
+
+  .lane-label {
+    width: 30px;
+  }
+}
+
+/* Phones ------------------------------------------------------------------
+   A 16:9 window on a phone is a letterbox a couple of hundred pixels tall,
+   with everything inside it crammed together. Idle, it stays that compact,
+   so it is not a tall black block to scroll past. Once the visitor clicks
+   in, the canvas grows to fill the screen, portrait, like an app, and every
+   step inside is laid out for that shape. Keyed to the screen's shape, not
+   just its width, so a portrait tablet gets it too and a landscape one keeps
+   the widescreen window. `phone` in process.js uses the same query. */
+@media (max-width: 900px) and (orientation: portrait) {
+  .process-stage {
+    --head: 76px;
+    padding-top: var(--head);
+    padding-bottom: 0.75rem;
+  }
+
+  .workbench-window {
+    max-width: none;
+  }
+
+  .window-canvas {
+    aspect-ratio: auto;
+    height: calc((100vw - 2 * var(--gutter)) * 9 / 16);
+    transition: height 760ms var(--ease-out);
+  }
+
+  .process-sequence.is-engaged .window-canvas {
+    height: calc(100svh - var(--head) - 42px - 1.5rem);
+  }
+
+  .rail-step h3 {
+    font-size: clamp(1.35rem, 6vw, 1.7rem);
+  }
+
+  /* Step 1: the orbit uses the height it now has. */
+  .intake-deck {
+    --orbit-y: calc(var(--orbit) * 1.45);
+  }
+
+  /* Step 3: notes wrap, and stack down the left of the frame, clear of the
+     scroll hint in the middle. */
+  .monitor-note {
+    max-width: 84%;
+  }
+
+  .note-bubble {
+    white-space: normal;
+  }
+
+  .monitor-note[data-note="1"] { left: 6% !important; top: 19% !important; }
+  .monitor-note[data-note="2"] { left: 12% !important; top: 31% !important; }
+  .monitor-note[data-note="3"] { left: 6% !important; top: 61% !important; }
+  .monitor-note[data-note="4"] { left: 12% !important; top: 73% !important; }
+
+  /* The end screen: the line higher and a little smaller, so the fan and
+     the hint both have room below it. */
+  .success-head {
+    top: 25%;
+    padding-inline: 1.2rem;
+  }
+
+  .monitor-success strong {
+    font-size: clamp(2rem, 9vw, 2.8rem);
+    line-height: 1.02;
+    text-align: center;
+  }
+}
+
+/* The header is shorter on phones. */
+@media (max-width: 760px) and (orientation: portrait) {
+  .process-stage { --head: 66px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workbench-window {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .note-beacon::after {
+    animation: none;
+  }
+
+  .intake-file,
+  .clip,
+  .export-file,
+  .monitor-note,
+  .scrubber-tick,
+  .rail-step,
+  .monitor-success {
+    transition-duration: 1ms;
+  }
+
+  /* Pointer tilt is motion the user asked not to have. */
+  .workbench-window { transform: none !important; }
+}

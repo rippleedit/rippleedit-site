@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+*.log
+
+# Working notes and local tooling: kept on this machine, never published.
+HANDOVER.md
+.claude/

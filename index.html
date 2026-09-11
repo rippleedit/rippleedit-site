@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RippleEdit · Video editing for music producers</title>
+  <meta name="description" content="Video editing for hip hop producers, by a multi-platinum producer who edits.">
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/hero.css">
+  <link rel="stylesheet" href="css/sections.css">
+  <link rel="stylesheet" href="css/process.css">
+  <script type="module" src="js/main.js"></script>
+</head>
+<body class="is-loading">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Tritone. Luminance is mapped onto a three-stop ramp - ember shadows,
+       signal midtones, warm highlights - the same move as the After Effects
+       effect, so background footage sits in the palette instead of fighting it. -->
+  <svg class="filter-defs" aria-hidden="true" focusable="false">
+    <filter id="tritone" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="0.2126 0.7152 0.0722 0 0
+                                           0.2126 0.7152 0.0722 0 0
+                                           0.2126 0.7152 0.0722 0 0
+                                           0      0      0      1 0"/>
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.04 0.86 1"/>
+        <feFuncG type="table" tableValues="0.03 0.26 0.93"/>
+        <feFuncB type="table" tableValues="0.05 0.11 0.86"/>
+      </feComponentTransfer>
+    </filter>
+  </svg>
+
+  <header class="site-header" data-header>
+    <a class="brand" href="#main" aria-label="RippleEdit, home">
+      <img src="assets/logotype-v002.png" width="132" height="30" alt="RippleEdit">
+    </a>
+
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="#process">Process</a>
+      <a href="#work">Work</a>
+      <a href="#words">Client words</a>
+      <a href="#about">About us</a>
+    </nav>
+
+    <a class="header-contact button button--solid button--compact" href="#contact">
+      Get in touch
+      <span aria-hidden="true">→</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="hero-title" data-hero>
+      <div class="hero-stage" data-hero-stage>
+        <div class="hero-media" aria-hidden="true">
+          <video class="hero-video is-active" id="main-film" data-hero-video poster="assets/main-film-poster.jpg" muted playsinline preload="metadata">
+            <source src="assets/main-film-mobile.mp4" type="video/mp4" media="(max-width: 820px)">
+            <source src="assets/main-film.mp4" type="video/mp4">
+          </video>
+        </div>
+        <div class="hero-shade" aria-hidden="true"></div>
+
+        <div class="hero-copy">
+          <p class="hero-proof" data-enter>
+            <span class="live-dot" aria-hidden="true"></span>
+            Built by a multi-platinum producer
+          </p>
+          <h1 id="hero-title" data-enter>
+            <span>Producer content,</span>
+            <span>edited by experts.</span>
+          </h1>
+          <div class="hero-intro" data-enter>
+            <p>Hand your footage over to somebody who knows music as well as you do.</p>
+            <div class="hero-actions">
+              <a class="button button--solid button--hero" href="#contact">Get in touch <span aria-hidden="true">→</span></a>
+              <a class="text-link" href="#work">Watch our work <span aria-hidden="true">↓</span></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-progress" aria-hidden="true"><i data-clip-progress></i></div>
+      </div>
+    </section>
+
+    <!-- 01 - Clients. Small, dense, and over quickly: it is a credential, not
+         a chapter. Faces do the work the names cannot. -->
+    <section class="clients section" id="clients" aria-labelledby="clients-title">
+      <div class="section-shell">
+        <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">Selected clients</span></div>
+        <h2 id="clients-title" class="section-title section-title--wide" data-reveal="lines">
+          <span class="line">The producers</span><span class="line">we work with.</span>
+        </h2>
+        <div class="client-roster" data-client-roster></div>
+        <p class="client-more" data-reveal="up">And many more.</p>
+      </div>
+    </section>
+    <!-- 02 - Process. The heart. One window, four steps, nothing rebuilt
+         between them. -->
+    <section class="process-sequence" id="process" aria-labelledby="process-title">
+      <div class="section-shell">
+        <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">The process</span></div>
+        <h2 id="process-title" class="section-title" data-reveal="lines"><span class="line">How we work.</span></h2>
+      </div>
+
+      <div class="process-track" data-process-track>
+
+        <div class="process-stage">
+          <div class="process-workbench" data-chassis>
+
+            <div class="workbench-window" data-window>
+              <div class="window-titlebar">
+                <!-- The fill is the progress bar: the whole bar floods rather
+                     than a hairline creeping along under it. -->
+                <i class="titlebar-fill" aria-hidden="true"></i>
+                <span class="traffic-lights" aria-hidden="true">
+                  <i class="light light--red"></i><i class="light light--yellow"></i><i class="light light--green"></i>
+                </span>
+                <!-- Once someone has opted in: step through it, or out of it. -->
+                <div class="titlebar-controls">
+                  <button class="titlebar-button" type="button" data-process-prev tabindex="-1" disabled><span aria-hidden="true">‹</span> Previous step</button>
+                  <button class="titlebar-button" type="button" data-process-next tabindex="-1" disabled>Next step <span aria-hidden="true">›</span></button>
+                  <button class="titlebar-button titlebar-skip" type="button" data-process-skip tabindex="-1">Skip to the end <span aria-hidden="true">&gt;&gt;&gt;</span></button>
+                </div>
+              </div>
+
+              <div class="window-canvas">
+                <div class="workbench-monitor" data-monitor>
+                  <video class="monitor-video" data-monitor-video src="assets/hero-3.mp4" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+
+                  <!-- A real second copy of the picture with the log look burned
+                       in, wiped away by clip-path. -->
+                  <video class="monitor-video monitor-video--log" data-monitor-log src="assets/hero-3.mp4" muted loop playsinline preload="metadata" aria-hidden="true"></video>
+
+                  <!-- Pulls the picture back so overlaid type always carries. -->
+                  <div class="monitor-veil" aria-hidden="true"></div>
+
+                  <!-- Before anything else: the invitation. The sequence is
+                       opt-in, so scrolling past the section never forces
+                       anyone through it. -->
+                  <div class="monitor-cue" data-cue>
+                    <button class="cue-button" type="button" data-process-start>
+                      <span class="cue-play" aria-hidden="true"></span>
+                      <span data-process-start-label>Click to unravel the process</span>
+                    </button>
+                  </div>
+
+                  <!-- Only on the visitor's own beats: this part is yours to
+                       scroll. The edit and the render play themselves. Sits
+                       dead centre, which in step 1 is inside the ring. -->
+                  <div class="monitor-hint" aria-hidden="true">
+                    <span class="hint-text">Scroll<br><span data-hint-text>to upload</span></span>
+                    <span class="cue-chevrons cue-chevrons--small">
+                      <i></i><i></i>
+                    </span>
+                  </div>
+
+                  <div class="monitor-grade" data-grade-layer aria-hidden="true">
+                    <span class="grade-stamp grade-stamp--flat">Log</span>
+                    <span class="grade-stamp grade-stamp--graded">Graded</span>
+                    <div class="grade-handle"></div>
+                  </div>
+
+                  <div class="monitor-notes" data-notes-layer aria-hidden="true">
+                    <!-- One per quadrant, so the centred scroll hint stays
+                         clear of all four. -->
+                    <div class="monitor-note" data-note="1" style="left: 9%; top: 34%;">
+                      <span class="note-beacon"></span>
+                      <span class="note-bubble">Use B-roll here</span>
+                    </div>
+                    <div class="monitor-note" data-note="2" style="left: 58%; top: 29%;">
+                      <span class="note-beacon"></span>
+                      <span class="note-bubble">Could we have a motion graphic here?</span>
+                    </div>
+                    <div class="monitor-note" data-note="3" style="left: 7%; top: 70%;">
+                      <span class="note-beacon"></span>
+                      <span class="note-bubble">Show the A-Camera full screen for this part</span>
+                    </div>
+                    <div class="monitor-note" data-note="4" style="left: 60%; top: 74%;">
+                      <span class="note-beacon"></span>
+                      <span class="note-bubble">Can we make the grade a bit warmer?</span>
+                    </div>
+                  </div>
+
+                  <div class="monitor-scrubber" data-scrubber aria-hidden="true">
+                    <div class="scrubber-track">
+                      <i class="scrubber-fill"></i>
+                      <span class="scrubber-tick" data-scrub-tick="1" style="left: 12%"></span>
+                      <span class="scrubber-tick" data-scrub-tick="2" style="left: 36%"></span>
+                      <span class="scrubber-tick" data-scrub-tick="3" style="left: 60%"></span>
+                      <span class="scrubber-tick" data-scrub-tick="4" style="left: 84%"></span>
+                      <b class="scrubber-head"></b>
+                    </div>
+                  </div>
+
+                  <!-- Step 4. The export sits on the picture. -->
+                  <div class="monitor-export" data-export-layer aria-hidden="true">
+                    <div class="progress-ring progress-ring--export" data-export-ring>
+                      <svg viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="ring-track" cx="60" cy="60" r="53"></circle>
+                        <circle class="ring-fill" cx="60" cy="60" r="53"></circle>
+                      </svg>
+                      <span class="ring-label" data-export-label>Exporting</span>
+                      <span class="ring-pct" data-export-pct>0%</span>
+                    </div>
+                  </div>
+
+                  <div class="monitor-success" aria-hidden="true">
+                    <div class="success-head">
+                      <span class="success-mark"></span>
+                      <strong>Your videos are ready.</strong>
+                    </div>
+                    <span class="success-caption">1 YouTube long form · 6 short forms</span>
+                  </div>
+
+                  <!-- Above the flood, so the same files carry on from the
+                       export into the end screen. Poses live in process.js;
+                       data-export-at is where on the ring each one pops. -->
+                  <div class="monitor-files" aria-hidden="true">
+                    <div class="export-file export-file--master" data-export-file data-export-at="0.30">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>YouTube Long Form.mov</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.44">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 01.mp4</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.55">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 02.mp4</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.66">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 03.mp4</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.77">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 04.mp4</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.88">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 05.mp4</span>
+                    </div>
+                    <div class="export-file" data-export-file data-export-at="0.99">
+                      <img src="assets/apple-mov-file.png" alt="">
+                      <span>Short Form 06.mp4</span>
+                    </div>
+                  </div>
+
+                  <!-- The reward. Pieces are written by process.js. -->
+                  <div class="monitor-confetti" data-confetti aria-hidden="true"></div>
+
+                  <!-- Step 1 intake, over the blank window. -->
+                  <div class="workbench-intake" data-intake>
+                    <!-- Six files, six sixths of the ring. Each sits 30deg past
+                       the point where its sixth completes, so it appears as
+                       the arc sweeps by it. data-angle is clockwise from 12. -->
+                    <div class="intake-deck">
+                      <div class="intake-file" data-intake-file="1" data-angle="30">
+                        <img class="intake-file-icon intake-file-icon--doc" src="assets/generic-document-icon.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Editor Brief &amp; Script</span>
+                      </div>
+                      <div class="intake-file" data-intake-file="2" data-angle="90">
+                        <img class="intake-file-icon" src="assets/apple-mov-file.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Camera A.mov</span>
+                      </div>
+                      <div class="intake-file" data-intake-file="3" data-angle="150">
+                        <img class="intake-file-icon" src="assets/apple-mov-file.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Camera B.mov</span>
+                      </div>
+                      <div class="intake-file" data-intake-file="4" data-angle="210">
+                        <img class="intake-file-icon" src="assets/apple-mov-file.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Screen Recording.mov</span>
+                      </div>
+                      <div class="intake-file" data-intake-file="5" data-angle="270">
+                        <img class="intake-file-icon" src="assets/apple-mic-wav-file.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Microphone Recording.wav</span>
+                      </div>
+                      <div class="intake-file" data-intake-file="6" data-angle="330">
+                        <img class="intake-file-icon" src="assets/apple-music-wav-file.png" alt="" aria-hidden="true">
+                        <span class="intake-file-name">Full Beat.wav</span>
+                      </div>
+                    </div>
+                    <div class="progress-ring" data-intake-ring>
+                      <svg viewBox="0 0 120 120" aria-hidden="true">
+                        <circle class="ring-track" cx="60" cy="60" r="53"></circle>
+                        <circle class="ring-fill" cx="60" cy="60" r="53"></circle>
+                      </svg>
+                      <span class="ring-pct" data-intake-pct>0%</span>
+                    </div>
+                  </div>
+
+                  <!-- The step title rides on the picture, so the window keeps
+                       the full width for the work. -->
+                  <aside class="process-rail" aria-label="Editing process">
+                    <ol class="rail-steps">
+                      <li class="rail-step is-active" data-rail-step="1">
+                        <span class="rail-step-index">Step 01 · Upload</span>
+                        <h3>You record &amp; upload</h3>
+                      </li>
+                      <li class="rail-step" data-rail-step="2">
+                        <span class="rail-step-index">Step 02 · Post-production</span>
+                        <h3>We edit</h3>
+                      </li>
+                      <li class="rail-step" data-rail-step="3">
+                        <span class="rail-step-index">Step 03 · Review</span>
+                        <h3>We refine together</h3>
+                      </li>
+                      <li class="rail-step" data-rail-step="4">
+                        <span class="rail-step-index">Step 04 · Delivery</span>
+                        <h3>We finalize</h3>
+                      </li>
+                    </ol>
+                  </aside>
+                </div>
+
+                <div class="workbench-timeline" data-timeline>
+                  <div class="timeline-lanes">
+                    <div class="lane">
+                      <span class="lane-label">V2</span>
+                      <div class="lane-track">
+                        <div class="clip clip--mograph" style="--clip-start: 4%;  --clip-width: 14%"><span>Motion graphic</span></div>
+                        <div class="clip clip--mograph" style="--clip-start: 27%; --clip-width: 12%"><span>Motion graphic</span></div>
+                        <div class="clip clip--mograph" style="--clip-start: 51%; --clip-width: 13%"><span>Motion graphic</span></div>
+                        <div class="clip clip--mograph" style="--clip-start: 80%; --clip-width: 15%"><span>Motion graphic</span></div>
+                      </div>
+                    </div>
+                    <div class="lane">
+                      <span class="lane-label">V1</span>
+                      <div class="lane-track">
+                        <div class="clip clip--cam clip--t1" style="--clip-start: 0%;  --clip-width: 24%"><span>Camera A · main</span></div>
+                        <div class="clip clip--cam clip--t2" style="--clip-start: 26%; --clip-width: 22%"><span>Camera B · keys</span></div>
+                        <div class="clip clip--cam clip--t3" style="--clip-start: 50%; --clip-width: 26%"><span>Camera A · main</span></div>
+                        <div class="clip clip--cam clip--t4" style="--clip-start: 78%; --clip-width: 22%"><span>Camera B · wide</span></div>
+                      </div>
+                    </div>
+                    <div class="lane">
+                      <span class="lane-label">A1</span>
+                      <div class="lane-track">
+                        <div class="clip clip--beat" style="--clip-start: 0%; --clip-width: 100%"><span>Beat stems · locked to grid</span></div>
+                      </div>
+                    </div>
+                    <div class="lane">
+                      <span class="lane-label">A2</span>
+                      <div class="lane-track">
+                        <div class="clip clip--mic" style="--clip-start: 0%;  --clip-width: 30%"><span>Studio mic</span></div>
+                        <div class="clip clip--mic" style="--clip-start: 34%; --clip-width: 28%"><span>Producer vocals</span></div>
+                        <div class="clip clip--mic" style="--clip-start: 66%; --clip-width: 32%"><span>Studio mic</span></div>
+                      </div>
+                    </div>
+                    <div class="lane">
+                      <span class="lane-label">A3</span>
+                      <div class="lane-track">
+                        <div class="clip clip--fx" style="--clip-start: 10%; --clip-width: 8%"><span>Riser</span></div>
+                        <div class="clip clip--fx" style="--clip-start: 24%; --clip-width: 9%"><span>Sub boom</span></div>
+                        <div class="clip clip--fx" style="--clip-start: 38%; --clip-width: 7%"><span>Whoosh</span></div>
+                        <div class="clip clip--fx" style="--clip-start: 52%; --clip-width: 10%"><span>Vinyl stop</span></div>
+                        <div class="clip clip--fx" style="--clip-start: 68%; --clip-width: 8%"><span>Impact</span></div>
+                        <div class="clip clip--fx" style="--clip-start: 82%; --clip-width: 9%"><span>Ad-lib</span></div>
+                      </div>
+                    </div>
+                    <div class="lane">
+                      <span class="lane-label">A4</span>
+                      <div class="lane-track">
+                        <div class="clip clip--music clip--music-out" style="--clip-start: 0%;  --clip-width: 47.5%"><span>Intro bed</span></div>
+                        <div class="clip clip--music clip--music-in"  style="--clip-start: 48%; --clip-width: 52%"><span>Outro bed</span></div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <div class="sequence-playhead" aria-hidden="true"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- What we offer. The edit itself first, then what can be booked on
+           top of it with the same team. Icons: Lucide (ISC licence). -->
+      <div class="section-shell process-deliverables">
+        <svg class="icon-sprite" aria-hidden="true" focusable="false">
+          <symbol id="i-story" viewBox="0 0 24 24"><path d="M12 7v14"/> <path d="M16 12h2"/> <path d="M16 8h2"/> <path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/> <path d="M6 12h2"/> <path d="M6 8h2"/></symbol>
+          <symbol id="i-pacing" viewBox="0 0 24 24"><path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"/></symbol>
+          <symbol id="i-color" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/> <circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/> <circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/> <circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/> <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></symbol>
+          <symbol id="i-sound" viewBox="0 0 24 24"><line x1="4" x2="4" y1="21" y2="14"/> <line x1="4" x2="4" y1="10" y2="3"/> <line x1="12" x2="12" y1="21" y2="12"/> <line x1="12" x2="12" y1="8" y2="3"/> <line x1="20" x2="20" y1="21" y2="16"/> <line x1="20" x2="20" y1="12" y2="3"/> <line x1="2" x2="6" y1="14" y2="14"/> <line x1="10" x2="14" y1="8" y2="8"/> <line x1="18" x2="22" y1="16" y2="16"/></symbol>
+          <symbol id="i-motion" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/> <path d="M20 3v4"/> <path d="M22 5h-4"/> <path d="M4 17v2"/> <path d="M5 18H3"/></symbol>
+          <symbol id="i-captions" viewBox="0 0 24 24"><rect width="18" height="14" x="3" y="5" rx="2" ry="2"/> <path d="M7 15h4M15 15h2M7 11h2M13 11h4"/></symbol>
+          <symbol id="i-shorts" viewBox="0 0 24 24"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/></symbol>
+          <symbol id="i-strategy" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/> <polyline points="16 7 22 7 22 13"/></symbol>
+          <symbol id="i-thumbnail" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/> <circle cx="9" cy="9" r="2"/> <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></symbol>
+          <symbol id="i-plus" viewBox="0 0 24 24"><path d="M5 12h14"/> <path d="M12 5v14"/></symbol>
+          <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14"/> <path d="m12 5 7 7-7 7"/></symbol>
+          <symbol id="i-prev" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+          <symbol id="i-next" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+          <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6 6 18"/> <path d="m6 6 12 12"/></symbol>
+          <symbol id="i-external" viewBox="0 0 24 24"><path d="M7 7h10v10"/> <path d="M7 17 17 7"/></symbol>
+        </svg>
+
+        <div class="deliverables-head" data-reveal="up">
+          <h3>What we offer</h3>
+        </div>
+
+        <div class="offer-group">
+          <div class="offer-group-head" data-reveal="up">
+            <span class="offer-tag">Long-form YouTube edit</span>
+            <span class="offer-note">What goes into the edit itself.</span>
+          </div>
+          <ul class="offer-list" data-stagger="60">
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-story"/></svg></span>
+              <span class="offer-index">01</span>
+              <h4 class="offer-label">Storytelling structure</h4>
+              <p class="offer-detail">We find the story in your footage and build the whole video around it.</p>
+            </li>
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-pacing"/></svg></span>
+              <span class="offer-index">02</span>
+              <h4 class="offer-label">Pacing &amp; rhythm</h4>
+              <p class="offer-detail">Cut for retention, so viewers stay to the end. On the beat where it counts.</p>
+            </li>
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-color"/></svg></span>
+              <span class="offer-index">03</span>
+              <h4 class="offer-label">Color grading</h4>
+              <p class="offer-detail">One consistent look that fits your brand, from the first shot to the last.</p>
+            </li>
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-sound"/></svg></span>
+              <span class="offer-index">04</span>
+              <h4 class="offer-label">Sound design &amp; mix</h4>
+              <p class="offer-detail">Clean vocals, balanced levels and a mix that hits on any speaker.</p>
+            </li>
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-motion"/></svg></span>
+              <span class="offer-index">05</span>
+              <h4 class="offer-label">Motion graphics &amp; animation</h4>
+              <p class="offer-detail">Titles, callouts and animation made for your video, not pulled from a template.</p>
+            </li>
+            <li class="offer-item" data-reveal="up">
+              <span class="offer-icon"><svg aria-hidden="true"><use href="#i-captions"/></svg></span>
+              <span class="offer-index">06</span>
+              <h4 class="offer-label">Captions</h4>
+              <p class="offer-detail">Styled to fit the video, timed to the words.</p>
+            </li>
+          </ul>
+        </div>
+
+        <div class="offer-group offer-group--addons">
+          <div class="offer-group-head" data-reveal="up">
+            <span class="offer-tag offer-tag--signal">Add-ons</span>
+            <span class="offer-note">Book them with your edit. Same team, more out of every video.</span>
+          </div>
+          <ul class="addon-list" data-stagger="80">
+            <li class="addon-card" data-reveal="up">
+              <div class="addon-top">
+                <span class="addon-icon"><svg aria-hidden="true"><use href="#i-shorts"/></svg></span>
+                <span class="addon-chip"><svg aria-hidden="true"><use href="#i-plus"/></svg>Add-on</span>
+              </div>
+              <span class="offer-index">07</span>
+              <h4 class="addon-label">Short-form edits</h4>
+              <p class="offer-detail">We clip the moments from your long-form that work best on their own and cut them into Shorts and Reels, ready to post.</p>
+              <ul class="addon-points">
+                <li>The moments that stand on their own</li>
+                <li>Reframed and captioned for vertical</li>
+                <li>Ready for Shorts, Reels and TikTok</li>
+              </ul>
+              <a class="addon-link" href="#contact">Add it to your project <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            </li>
+            <li class="addon-card" data-reveal="up">
+              <div class="addon-top">
+                <span class="addon-icon"><svg aria-hidden="true"><use href="#i-strategy"/></svg></span>
+                <span class="addon-chip"><svg aria-hidden="true"><use href="#i-plus"/></svg>Add-on</span>
+              </div>
+              <span class="offer-index">08</span>
+              <h4 class="addon-label">YouTube strategy</h4>
+              <p class="offer-detail">We dig into your analytics, show you what's working and where viewers drop off, and plan what's next without guesswork.</p>
+              <ul class="addon-points">
+                <li>Your analytics, read and explained</li>
+                <li>Title and thumbnail ideation</li>
+                <li>A title, thumbnail and intro that work as one</li>
+              </ul>
+              <a class="addon-link" href="#contact">Add it to your project <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            </li>
+            <li class="addon-card" data-reveal="up">
+              <div class="addon-top">
+                <span class="addon-icon"><svg aria-hidden="true"><use href="#i-thumbnail"/></svg></span>
+                <span class="addon-chip"><svg aria-hidden="true"><use href="#i-plus"/></svg>Add-on</span>
+              </div>
+              <span class="offer-index">09</span>
+              <h4 class="addon-label">Thumbnail design</h4>
+              <p class="offer-detail">We don't stop at the idea. We design the thumbnail, with the strategy behind it and a strong visual style.</p>
+              <ul class="addon-points">
+                <li>Built on the title and the idea behind it</li>
+                <li>A visual style that stays yours</li>
+                <li>Delivered ready to upload</li>
+              </ul>
+              <a class="addon-link" href="#contact">Add it to your project <svg aria-hidden="true"><use href="#i-arrow"/></svg></a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 - Work. A horizontal timeline you scrub through with the page. -->
+    <section class="work-runway" id="work" aria-labelledby="work-title" data-runway-section>
+      <div class="runway-stage">
+        <header class="runway-header">
+          <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">Our work</span></div>
+          <h2 id="work-title" class="section-title" data-reveal="lines"><span class="line">A selection of</span><span class="line">our edits.</span></h2>
+        </header>
+        <div class="runway-viewport" data-runway-viewport>
+          <div class="runway-track" data-runway-track></div>
+        </div>
+        <div class="runway-timeline" aria-hidden="true">
+          <div class="runway-ruler"></div>
+          <div class="runway-progress">
+            <i data-runway-progress></i>
+            <b data-runway-playhead></b>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 - Words. Scroll moves through them; nothing to click. -->
+    <section class="words" id="words" aria-labelledby="words-title" data-words-section>
+      <div class="words-track" data-words-track>
+        <div class="words-stage">
+          <div class="section-shell">
+            <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">What our clients say</span></div>
+
+            <div class="words-deck" data-words-deck>
+              <span class="words-counter" aria-hidden="true"><b data-words-current>01</b> / <i data-words-total>05</i></span>
+              <div class="words-quotes" data-words-quotes></div>
+              <div class="words-ticks" aria-hidden="true" data-words-ticks></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h2 id="words-title" class="visually-hidden">What our clients say</h2>
+    </section>
+
+    <!-- 05 - About us. The one place a face belongs. -->
+    <section class="studio section" id="about" aria-labelledby="about-title">
+      <div class="studio-bed" aria-hidden="true">
+        <video src="assets/background-video-small.mp4" muted loop playsinline preload="metadata" data-observed-video></video>
+        <div class="studio-veil"></div>
+      </div>
+
+      <div class="section-shell studio-inner">
+        <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">About us</span></div>
+
+        <div class="studio-grid">
+          <figure class="studio-portrait" data-reveal="media">
+            <img src="assets/founder.jpg" alt="Razz, founder of RippleEdit, at the desk in the studio" width="1400" height="940" loading="lazy">
+            <figcaption>Razz · producer, editor, founder</figcaption>
+          </figure>
+
+          <div class="studio-copy">
+            <h2 id="about-title" class="section-title" data-reveal="lines">
+              <span class="line">Who you're</span><span class="line">working with.</span>
+            </h2>
+            <div class="studio-text" data-stagger="90">
+              <p data-reveal="up">RippleEdit was founded by Razz, a member of the multi-platinum producer duo STRAIGHTUPGLOBAL. Their credits include Gucci Mane, Offset and Polo G in the US, plus major artists internationally.</p>
+              <p data-reveal="up">Those years inside the industry mean he knows how the craft works at the highest level, and the business behind it just as well. His passion for film editing runs just as deep. It earned him a place at Film Academy Baden-Württemberg, one of Europe's most renowned film universities.</p>
+              <p data-reveal="up">He is using that expertise to build the team behind RippleEdit, whose sole purpose is to bring ideas to life and make them as good as they can be.</p>
+            </div>
+            <ul class="studio-facts" data-reveal="up" data-delay="240">
+              <li><span>01</span>Multi-platinum producer</li>
+              <li><span>02</span>Award-winning editor</li>
+              <li><span>03</span>Credits: Gucci Mane, Offset, Polo G, and many more</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 - Contact. -->
+    <section class="contact section" id="contact" aria-labelledby="contact-title">
+      <div class="section-shell">
+        <div class="section-label" data-reveal="up"><span class="live-dot" aria-hidden="true"></span><span class="section-label-text">Contact</span></div>
+
+        <div class="contact-shell">
+          <div class="contact-intro">
+            <h2 id="contact-title" class="section-title" data-reveal="lines"><span class="line">Ready to</span><span class="line">hand it over?</span></h2>
+            <p class="section-lede" data-reveal="up" data-delay="140">Tell us what you're working on. We'll take it from here.</p>
+            <a class="contact-mail" href="mailto:info@ripple-edit.com" data-reveal="up" data-delay="220">info@ripple-edit.com <span aria-hidden="true">→</span></a>
+          </div>
+
+          <form class="contact-form" data-reveal="up" data-delay="180" action="https://api.web3forms.com/submit" method="post" data-contact-form novalidate>
+            <input type="hidden" name="access_key" value="83617841-944b-40cf-ba4a-b5f3425254eb">
+            <input type="hidden" name="subject" value="New RippleEdit inquiry">
+            <input type="hidden" name="from_name" value="RippleEdit Website">
+            <label class="honeypot" aria-hidden="true">Leave empty<input type="checkbox" name="botcheck" tabindex="-1" autocomplete="off"></label>
+
+            <div class="form-row">
+              <label><span>Name</span><input type="text" name="name" autocomplete="name" placeholder="Producer name or alias" required></label>
+              <label><span>Email</span><input type="email" name="email" autocomplete="email" placeholder="you@example.com" required></label>
+            </div>
+            <label><span>Channel URL</span><input type="url" name="channel_link" inputmode="url" placeholder="https://youtube.com/@yourhandle" required></label>
+            <label>
+              <span>What do you need?</span>
+              <select name="project_type" required>
+                <option value="" selected disabled>Select one</option>
+                <option value="long_form_retainer">Long-form retainer</option>
+                <option value="short_form_retainer">Short-form retainer</option>
+                <option value="one_time">One-time edit</option>
+                <option value="bulk">Bulk package</option>
+                <option value="unsure">Not sure yet</option>
+              </select>
+            </label>
+            <label><span>Project details</span><textarea name="message" rows="4" placeholder="What are you making, and what should we edit?" required></textarea></label>
+
+            <div class="form-submit-row">
+              <button class="button button--solid" type="submit" data-submit>Send inquiry <span aria-hidden="true">→</span></button>
+              <p data-form-status role="status" aria-live="polite"></p>
+            </div>
+            <p class="form-note">We reply within 48 hours. Read our <a href="datenschutz.html">privacy policy</a>.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <a class="brand" href="#main" aria-label="RippleEdit, back to top"><img src="assets/logotype.png" width="132" height="30" alt="RippleEdit"></a>
+    <p>© 2026 RippleEdit</p>
+    <nav aria-label="Legal">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+    </nav>
+  </footer>
+
+  <!-- The work viewer. Full screen, the player first; the selection stays
+       one click (or an arrow key) away. Filled by initRunway in main.js. -->
+  <dialog class="work-dialog" data-work-dialog aria-labelledby="work-dialog-title">
+    <div class="dialog-shell" data-dialog-shell tabindex="-1" autofocus>
+      <header class="dialog-bar">
+        <div class="dialog-kicker">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span>Our work</span>
+          <span class="dialog-count" data-dialog-count>01 / 06</span>
+        </div>
+        <div class="dialog-actions">
+          <a class="dialog-youtube" href="#" target="_blank" rel="noopener noreferrer" aria-label="Watch on YouTube" data-dialog-link><span class="dialog-youtube-label">Watch on YouTube</span> <svg aria-hidden="true"><use href="#i-external"/></svg></a>
+          <button class="dialog-round dialog-close" type="button" data-dialog-close aria-label="Close video"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+        </div>
+      </header>
+
+      <div class="dialog-stage" data-dialog-stage>
+        <button class="dialog-round dialog-nav dialog-nav--prev" type="button" data-dialog-prev aria-label="Previous video"><svg aria-hidden="true"><use href="#i-prev"/></svg></button>
+        <div class="dialog-player" data-dialog-player></div>
+        <button class="dialog-round dialog-nav dialog-nav--next" type="button" data-dialog-next aria-label="Next video"><svg aria-hidden="true"><use href="#i-next"/></svg></button>
+      </div>
+
+      <div class="dialog-meta" data-dialog-meta>
+        <span class="dialog-client" data-dialog-client></span>
+        <h3 id="work-dialog-title" class="dialog-title" data-dialog-title>Selected work</h3>
+      </div>
+
+      <div class="dialog-strip" data-dialog-strip aria-label="All videos"></div>
+    </div>
+  </dialog>
+
+  <div class="page-progress" aria-hidden="true"><i data-page-progress></i></div>
+</body>
+</html>
