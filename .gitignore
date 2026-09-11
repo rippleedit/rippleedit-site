@@ -4,4 +4,6 @@ node_modules/
 
 # Working notes and local tooling: kept on this machine, never published.
 HANDOVER.md
+CLAUDE.md
 .claude/
+tools/
